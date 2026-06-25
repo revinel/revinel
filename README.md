@@ -1,7 +1,7 @@
 # OpenAds JS
 
-Public source for the OpenAds client packages — the libraries publishers use to
-integrate [OpenAds](https://openads.co) into their site.
+Official client libraries for integrating [OpenAds](https://openads.co) — fetch and
+render ads on your site, and drop in the "Subscribe to advertise" tier selector.
 
 | Package | What it does |
 | --- | --- |
@@ -12,12 +12,11 @@ integrate [OpenAds](https://openads.co) into their site.
 
 All four are MIT-licensed. See each package's README for install + usage.
 
-## Read-only mirror
+## Feedback & contributions
 
-These packages are developed in a private monorepo and mirrored here for source
-visibility. Pull requests opened here can't be merged directly — but **issues and
-discussions are very welcome**, and reported fixes are applied upstream and synced
-back. The canonical build and npm releases happen in the monorepo.
+Found a bug or have a request? **Open an issue — we read every one.** This repository is
+published from the OpenAds release pipeline, so accepted fixes are applied on our side and
+land here on the next release (a pull request may be closed in favor of the equivalent change).
 
 ## API reference
 
