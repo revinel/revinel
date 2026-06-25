@@ -1,0 +1,8 @@
+{
+  "name": "openads-js",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "workspaces": ["packages/*"],
+  "packageManager": "bun@1.3.14"
+}
