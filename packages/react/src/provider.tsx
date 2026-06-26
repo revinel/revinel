@@ -1,11 +1,11 @@
 "use client"
 
 import {
-  createOpenAdsClient,
-  type OpenAdsClient,
-  type OpenAdsClientOptions,
-  type OpenAdsSerializableRequestOptions,
-} from "@openads/sdk"
+  createRevinelClient,
+  type RevinelClient,
+  type RevinelClientOptions,
+  type RevinelSerializableRequestOptions,
+} from "@revinel/sdk"
 import {
   createContext,
   type PropsWithChildren,
@@ -20,59 +20,59 @@ import {
 // The provider and hooks memoize on `JSON.stringify(request)`, so they accept
 // only the serializable subset — a `signal` or `Headers` instance would
 // stringify to a constant and never invalidate the memo.
-export type SerializableRequest = {
-  request?: OpenAdsSerializableRequestOptions
+export interface SerializableRequest {
+  request?: RevinelSerializableRequestOptions
 }
 
-export type OpenAdsQueryState<TData> = {
+export interface RevinelQueryState<TData> {
   data: TData
   isLoading: boolean
   error: Error | null
   refetch: () => Promise<TData>
 }
 
-export type OpenAdsProviderProps = PropsWithChildren<
-  Omit<OpenAdsClientOptions, "request"> & SerializableRequest
+export type RevinelProviderProps = PropsWithChildren<
+  Omit<RevinelClientOptions, "request"> & SerializableRequest
 >
 
-const OpenAdsContext = createContext<OpenAdsClient | null>(null)
+const RevinelContext = createContext<RevinelClient | null>(null)
 
-export const OpenAdsProvider = ({
+export function RevinelProvider({
   children,
   workspaceId,
   apiUrl,
   fetch,
   request,
-}: OpenAdsProviderProps) => {
+}: RevinelProviderProps) {
   const requestKey = JSON.stringify(request)
 
   const client = useMemo(() => {
-    return createOpenAdsClient({ workspaceId, apiUrl, fetch, request })
+    return createRevinelClient({ workspaceId, apiUrl, fetch, request })
   }, [apiUrl, fetch, requestKey, workspaceId])
 
-  return <OpenAdsContext.Provider value={client}>{children}</OpenAdsContext.Provider>
+  return <RevinelContext.Provider value={client}>{children}</RevinelContext.Provider>
 }
 
-export const useOpenAdsClient = (): OpenAdsClient => {
-  const client = useContext(OpenAdsContext)
+export function useRevinelClient(): RevinelClient {
+  const client = useContext(RevinelContext)
 
   if (!client) {
-    throw new Error("useOpenAdsClient must be used within OpenAdsProvider.")
+    throw new Error("useRevinelClient must be used within RevinelProvider.")
   }
 
   return client
 }
 
-export const getError = (value: unknown): Error => {
+export function getError(value: unknown): Error {
   if (value instanceof Error) return value
-  return new Error("OpenAds request failed.", { cause: value })
+  return new Error("Revinel request failed.", { cause: value })
 }
 
-export const useOpenAdsQuery = <TData,>(
+export function useRevinelQuery<TData>(
   enabled: boolean,
   initialData: TData,
   getData: () => Promise<TData>,
-): OpenAdsQueryState<TData> => {
+): RevinelQueryState<TData> {
   const [data, setData] = useState(initialData)
   const [isLoading, setIsLoading] = useState(enabled)
   const [error, setError] = useState<Error | null>(null)

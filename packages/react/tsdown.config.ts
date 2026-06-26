@@ -17,5 +17,5 @@ export default defineConfig({
       dts: ".d.ts",
     }
   },
-  external: ["@openads/sdk", "react", "react/jsx-runtime"],
+  external: ["@revinel/sdk", "react", "react/jsx-runtime"],
 })

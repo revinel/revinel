@@ -1,23 +1,23 @@
 {
-  "name": "@openads/sdk",
+  "name": "@revinel/sdk",
   "version": "0.1.0",
   "private": false,
-  "description": "Universal headless OpenAds SDK for fetching and tracking publisher ads.",
+  "description": "Universal headless Revinel SDK for fetching and tracking publisher ads.",
   "keywords": [
     "ad-server",
     "ads",
     "advertising",
     "headless",
-    "openads",
     "publisher",
+    "revinel",
     "sdk"
   ],
-  "homepage": "https://github.com/piotrkulpinski/openads-js/tree/main/packages/sdk#readme",
+  "homepage": "https://github.com/revinel/revinel/tree/main/packages/sdk#readme",
   "license": "MIT",
   "author": "Piotr Kulpinski",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/piotrkulpinski/openads-js.git",
+    "url": "git+https://github.com/revinel/revinel.git",
     "directory": "packages/sdk"
   },
   "files": [
@@ -45,7 +45,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@openads/tsconfig": "*",
+    "@revinel/tsconfig": "*",
     "typescript": "^6.0.3"
   }
 }

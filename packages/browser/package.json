@@ -1,23 +1,23 @@
 {
-  "name": "@openads/browser",
+  "name": "@revinel/browser",
   "version": "0.1.0",
   "private": false,
-  "description": "Browser runtime helpers for embedding the OpenAds advertiser tier selector.",
+  "description": "Browser runtime helpers for embedding the Revinel advertiser tier selector.",
   "keywords": [
     "ads",
     "advertising",
     "embed",
     "iframe",
-    "openads",
+    "revinel",
     "tier-selector",
     "widget"
   ],
-  "homepage": "https://github.com/piotrkulpinski/openads-js/tree/main/packages/browser#readme",
+  "homepage": "https://github.com/revinel/revinel/tree/main/packages/browser#readme",
   "license": "MIT",
   "author": "Piotr Kulpinski",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/piotrkulpinski/openads-js.git",
+    "url": "git+https://github.com/revinel/revinel.git",
     "directory": "packages/browser"
   },
   "files": [
@@ -45,10 +45,10 @@
     "pub:next": "bun run build && npm publish ./dist --access public --tag next --no-git-checks"
   },
   "dependencies": {
-    "@openads/embeds": "workspace:*"
+    "@revinel/embeds": "workspace:*"
   },
   "devDependencies": {
-    "@openads/tsconfig": "*",
+    "@revinel/tsconfig": "*",
     "typescript": "^6.0.3"
   }
 }

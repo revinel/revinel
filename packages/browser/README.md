@@ -1,22 +1,22 @@
-# @openads/browser
+# @revinel/browser
 
-Browser runtime for embedding the [OpenAds](https://openads.co) **tier selector** — the
+Browser runtime for embedding the [Revinel](https://revinel.com) **tier selector** — the
 "Subscribe to advertise" widget that lets your visitors pick an advertising plan and pay
 through Stripe. Renders as an auto-resizing iframe; inline or as a modal.
 
-> Looking to **render ads** on your site? Use [`@openads/sdk`](https://www.npmjs.com/package/@openads/sdk)
-> (headless) or [`@openads/react`](https://www.npmjs.com/package/@openads/react) (hooks + components).
+> Looking to **render ads** on your site? Use [`@revinel/sdk`](https://www.npmjs.com/package/@revinel/sdk)
+> (headless) or [`@revinel/react`](https://www.npmjs.com/package/@revinel/react) (hooks + components).
 
 ## Install
 
 ```sh
-npm install @openads/browser
+npm install @revinel/browser
 ```
 
 ## Inline widget
 
 ```ts
-import { mountTierSelector } from "@openads/browser"
+import { mountTierSelector } from "@revinel/browser"
 
 const widget = mountTierSelector({
   workspaceId: "your-workspace-id",
@@ -34,7 +34,7 @@ widget.destroy() // remove + detach listeners
 Opens the selector in a native `<dialog>` (focus-trap, Esc, and backdrop handled for you):
 
 ```ts
-import { openTierSelector } from "@openads/browser"
+import { openTierSelector } from "@revinel/browser"
 
 document.querySelector("#advertise-btn").addEventListener("click", () => {
   openTierSelector({ workspaceId: "your-workspace-id", onClose: () => {} })
@@ -46,15 +46,15 @@ document.querySelector("#advertise-btn").addEventListener("click", () => {
 No bundler needed — drop in the hosted script and mark any element to open the popup:
 
 ```html
-<button data-openads-tier-selector data-openads-workspace-id="your-workspace-id">
+<button data-revinel-tier-selector data-revinel-workspace-id="your-workspace-id">
   Advertise with us
 </button>
-<script async src="https://app.openads.co/embed.js"></script>
+<script async src="https://app.revinel.com/embed.js"></script>
 ```
 
-The script also exposes `window.OpenAds.init({ workspaceId, container })` (inline) and
-`window.OpenAds.open({ workspaceId })` (popup). Copy a ready-to-paste snippet with your
-real workspace ID from the **Embed** page in the OpenAds dashboard.
+The script also exposes `window.Revinel.init({ workspaceId, container })` (inline) and
+`window.Revinel.open({ workspaceId })` (popup). Copy a ready-to-paste snippet with your
+real workspace ID from the **Embed** page in the Revinel dashboard.
 
 ## Options
 
@@ -63,7 +63,7 @@ real workspace ID from the **Embed** page in the OpenAds dashboard.
 | `workspaceId` | `string` | Required. |
 | `container` | `string \| Element` | `mountTierSelector` only — where to mount the iframe. |
 | `theme` | `"auto" \| "light" \| "dark"` | Defaults to `"auto"` (matches the host page). |
-| `appUrl` | `string` | Origin serving `/embed`. Defaults to the hosted OpenAds app. |
+| `appUrl` | `string` | Origin serving `/embed`. Defaults to the hosted Revinel app. |
 | `height` | `number \| string` | Initial height before the embed reports its own. |
 | `title` | `string` | `openTierSelector` only — the modal's accessible label. |
 
@@ -82,4 +82,4 @@ gone by the time payment finishes — subscription state is delivered to your ac
 ## API reference
 
 OpenAPI spec and interactive docs are served at `/v1/openapi.json` and `/v1/docs` on the
-OpenAds API.
+Revinel API.

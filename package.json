@@ -1,8 +1,16 @@
 {
-  "name": "openads-js",
+  "name": "revinel",
   "private": true,
   "type": "module",
   "license": "MIT",
   "workspaces": ["packages/*"],
-  "packageManager": "bun@1.3.14"
+  "packageManager": "bun@1.3.14",
+  "scripts": {
+    "build": "bun run --filter '@revinel/embeds' --filter '@revinel/sdk' --filter '@revinel/react' --filter '@revinel/browser' build",
+    "release": "bun run build && bash scripts/publish-public.sh"
+  },
+  "devDependencies": {
+    "tsdown": "^0.22.3",
+    "typescript": "^6.0.3"
+  }
 }

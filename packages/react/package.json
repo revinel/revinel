@@ -1,22 +1,22 @@
 {
-  "name": "@openads/react",
+  "name": "@revinel/react",
   "version": "0.1.0",
   "private": false,
-  "description": "Headless React hooks and tracking helpers for OpenAds publisher integrations.",
+  "description": "Headless React hooks and tracking helpers for Revinel publisher integrations.",
   "keywords": [
     "ads",
     "advertising",
     "hooks",
-    "openads",
     "publisher",
-    "react"
+    "react",
+    "revinel"
   ],
-  "homepage": "https://github.com/piotrkulpinski/openads-js/tree/main/packages/react#readme",
+  "homepage": "https://github.com/revinel/revinel/tree/main/packages/react#readme",
   "license": "MIT",
   "author": "Piotr Kulpinski",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/piotrkulpinski/openads-js.git",
+    "url": "git+https://github.com/revinel/revinel.git",
     "directory": "packages/react"
   },
   "files": [
@@ -43,11 +43,11 @@
     "pub:next": "bun run build && npm publish ./dist --access public --tag next --no-git-checks"
   },
   "dependencies": {
-    "@openads/embeds": "workspace:*",
-    "@openads/sdk": "workspace:*"
+    "@revinel/embeds": "workspace:*",
+    "@revinel/sdk": "workspace:*"
   },
   "devDependencies": {
-    "@openads/tsconfig": "*",
+    "@revinel/tsconfig": "*",
     "@types/react": "^19.2.17",
     "react": "^19.2.7",
     "typescript": "^6.0.3"

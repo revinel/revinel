@@ -1,13 +1,13 @@
 "use client"
 
 import {
-  type OpenAdsAd,
-  type OpenAdsCheckoutOptions,
-  type OpenAdsCheckoutSession,
-  type OpenAdsPlacementListOptions,
-  type OpenAdsPlacementOptions,
-  type OpenAdsTier,
-} from "@openads/sdk"
+  type RevinelAd,
+  type RevinelCheckoutOptions,
+  type RevinelCheckoutSession,
+  type RevinelPlacementListOptions,
+  type RevinelPlacementOptions,
+  type RevinelTier,
+} from "@revinel/sdk"
 import {
   type HTMLAttributes,
   type MouseEvent,
@@ -19,29 +19,29 @@ import {
 } from "react"
 import {
   getError,
-  type OpenAdsQueryState,
+  type RevinelQueryState,
   type SerializableRequest,
-  useOpenAdsClient,
-  useOpenAdsQuery,
+  useRevinelClient,
+  useRevinelQuery,
 } from "./provider"
 
-export type OpenAdsAdOptions = Omit<OpenAdsPlacementOptions, "request"> &
+export type RevinelAdOptions = Omit<RevinelPlacementOptions, "request"> &
   SerializableRequest & {
     enabled?: boolean
   }
 
-export type OpenAdsAdsOptions = Omit<OpenAdsPlacementListOptions, "request"> &
+export type RevinelAdsOptions = Omit<RevinelPlacementListOptions, "request"> &
   SerializableRequest & {
     enabled?: boolean
   }
 
-export type OpenAdsTrackingOptions = {
+export interface RevinelTrackingOptions {
   disabled?: boolean
   threshold?: number
   viewabilityDurationMs?: number
 }
 
-export type OpenAdsTrackingResult = {
+export interface RevinelTrackingResult {
   impressionRef: RefCallback<HTMLElement>
   trackClick: () => void
   getClickProps: <TElement extends HTMLElement>(
@@ -49,13 +49,13 @@ export type OpenAdsTrackingResult = {
   ) => HTMLAttributes<TElement>
 }
 
-export const useOpenAdsAd = <TMeta = Record<string, unknown>,>({
+export function useAd<TMeta = Record<string, unknown>>({
   enabled = true,
   weightGte,
   excludeIds,
   request,
-}: OpenAdsAdOptions = {}): OpenAdsQueryState<OpenAdsAd<TMeta> | null> => {
-  const client = useOpenAdsClient()
+}: RevinelAdOptions = {}): RevinelQueryState<RevinelAd<TMeta> | null> {
+  const client = useRevinelClient()
   const excludeKey = excludeIds?.join(",") ?? ""
   // Same trick as excludeKey: key on content, not identity, so inline objects
   // don't refetch every render but real request changes do.
@@ -66,17 +66,17 @@ export const useOpenAdsAd = <TMeta = Record<string, unknown>,>({
     [client, excludeKey, requestKey, weightGte],
   )
 
-  return useOpenAdsQuery<OpenAdsAd<TMeta> | null>(enabled, null, getData)
+  return useRevinelQuery<RevinelAd<TMeta> | null>(enabled, null, getData)
 }
 
-export const useOpenAdsAds = <TMeta = Record<string, unknown>,>({
+export function useAds<TMeta = Record<string, unknown>>({
   enabled = true,
   weightGte,
   excludeIds,
   count,
   request,
-}: OpenAdsAdsOptions = {}): OpenAdsQueryState<Array<OpenAdsAd<TMeta>>> => {
-  const client = useOpenAdsClient()
+}: RevinelAdsOptions = {}): RevinelQueryState<RevinelAd<TMeta>[]> {
+  const client = useRevinelClient()
   const excludeKey = excludeIds?.join(",") ?? ""
   const requestKey = JSON.stringify(request)
 
@@ -85,14 +85,14 @@ export const useOpenAdsAds = <TMeta = Record<string, unknown>,>({
     [client, count, excludeKey, requestKey, weightGte],
   )
 
-  return useOpenAdsQuery<Array<OpenAdsAd<TMeta>>>(enabled, [], getData)
+  return useRevinelQuery<RevinelAd<TMeta>[]>(enabled, [], getData)
 }
 
-export const useOpenAdsTracking = <TMeta = Record<string, unknown>,>(
-  ad: OpenAdsAd<TMeta> | null | undefined,
-  { disabled = false, threshold = 0.5, viewabilityDurationMs = 500 }: OpenAdsTrackingOptions = {},
-): OpenAdsTrackingResult => {
-  const client = useOpenAdsClient()
+export function useTracking<TMeta = Record<string, unknown>>(
+  ad: RevinelAd<TMeta> | null | undefined,
+  { disabled = false, threshold = 0.5, viewabilityDurationMs = 500 }: RevinelTrackingOptions = {},
+): RevinelTrackingResult {
+  const client = useRevinelClient()
   const [element, setElement] = useState<HTMLElement | null>(null)
   const trackedAdId = useRef<string | null>(null)
 
@@ -156,34 +156,33 @@ export const useOpenAdsTracking = <TMeta = Record<string, unknown>,>(
   return { impressionRef, trackClick, getClickProps }
 }
 
-export type OpenAdsTiersOptions = SerializableRequest & { enabled?: boolean }
+export type RevinelTiersOptions = SerializableRequest & { enabled?: boolean }
 
-export const useOpenAdsTiers = ({
-  enabled = true,
-  request,
-}: OpenAdsTiersOptions = {}): OpenAdsQueryState<Array<OpenAdsTier>> => {
-  const client = useOpenAdsClient()
+export function useTiers({ enabled = true, request }: RevinelTiersOptions = {}): RevinelQueryState<
+  RevinelTier[]
+> {
+  const client = useRevinelClient()
   const requestKey = JSON.stringify(request)
 
   const getData = useCallback(() => client.getTiers(request), [client, requestKey])
 
-  return useOpenAdsQuery<Array<OpenAdsTier>>(enabled, [], getData)
+  return useRevinelQuery<RevinelTier[]>(enabled, [], getData)
 }
 
-export type OpenAdsCheckoutResult = {
-  createCheckout: (options: OpenAdsCheckoutOptions) => Promise<OpenAdsCheckoutSession>
-  redirectToCheckout: (options: OpenAdsCheckoutOptions) => Promise<void>
+export interface RevinelCheckoutResult {
+  createCheckout: (options: RevinelCheckoutOptions) => Promise<RevinelCheckoutSession>
+  redirectToCheckout: (options: RevinelCheckoutOptions) => Promise<void>
   isPending: boolean
   error: Error | null
 }
 
-export const useOpenAdsCheckout = (): OpenAdsCheckoutResult => {
-  const client = useOpenAdsClient()
+export function useCheckout(): RevinelCheckoutResult {
+  const client = useRevinelClient()
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
   const createCheckout = useCallback(
-    async (options: OpenAdsCheckoutOptions) => {
+    async (options: RevinelCheckoutOptions) => {
       setIsPending(true)
       setError(null)
 
@@ -201,7 +200,7 @@ export const useOpenAdsCheckout = (): OpenAdsCheckoutResult => {
   )
 
   const redirectToCheckout = useCallback(
-    async (options: OpenAdsCheckoutOptions) => {
+    async (options: RevinelCheckoutOptions) => {
       const { url } = await createCheckout(options)
       // Break out of any embedding iframe so Stripe Checkout loads at top level
       // (same as self when not framed).

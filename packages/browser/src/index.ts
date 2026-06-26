@@ -1,57 +1,66 @@
 import {
   buildEmbedUrl,
   DEFAULT_EMBED_HEIGHT,
+  DIALOG_STYLES,
   handleEmbedMessage,
   isEmbedMessage,
-  type OpenAdsEmbedCheckoutEvent,
-  type OpenAdsEmbedErrorEvent,
-  type OpenAdsEmbedTheme,
-} from "@openads/embeds"
+  type RevinelEmbedCheckoutEvent,
+  type RevinelEmbedErrorEvent,
+  type RevinelEmbedTheme,
+} from "@revinel/embeds"
 
-export type OpenAdsBrowserContainer = string | Element
+export type RevinelBrowserContainer = string | Element
 
-export type OpenAdsTierSelectorOptions = {
+export interface RevinelTierSelectorOptions {
   workspaceId: string
-  container: OpenAdsBrowserContainer
+  container: RevinelBrowserContainer
   appUrl?: string
-  theme?: OpenAdsEmbedTheme
+  theme?: RevinelEmbedTheme
   height?: number | string
   /** Fired once the tier selector has loaded and rendered. */
   onReady?: () => void
   /** Fired when the visitor starts checkout, just before the redirect to Stripe. */
-  onCheckout?: (event: OpenAdsEmbedCheckoutEvent) => void
+  onCheckout?: (event: RevinelEmbedCheckoutEvent) => void
   /** Fired when tiers fail to load or checkout creation fails. */
-  onError?: (event: OpenAdsEmbedErrorEvent) => void
+  onError?: (event: RevinelEmbedErrorEvent) => void
 }
 
-export type OpenAdsTierSelector = {
+export interface RevinelTierSelector {
   hostElement: HTMLDivElement
   iframe: HTMLIFrameElement
-  updateConfig: (options: Partial<Omit<OpenAdsTierSelectorOptions, "container">>) => void
+  updateConfig: (options: Partial<Omit<RevinelTierSelectorOptions, "container">>) => void
   destroy: () => void
 }
 
-const resolveContainer = (container: OpenAdsBrowserContainer): Element => {
+function resolveContainer(container: RevinelBrowserContainer): Element {
   if (typeof container !== "string") return container
 
   const element = document.querySelector(container)
   if (!element) {
-    throw new Error(`OpenAds could not find a container matching "${container}".`)
+    throw new Error(`Revinel could not find a container matching "${container}".`)
   }
 
   return element
 }
 
-const getHeight = (height: number | string | undefined): string => {
+function getHeight(height: number | string | undefined): string {
   if (typeof height === "number") return `${height}px`
   return height ?? `${DEFAULT_EMBED_HEIGHT}px`
 }
 
+// Internal shape the popup adds on top of the public options: `chrome:"popup"` makes the
+// embed paint its own surface + close button, and `onRequestClose` fires on `revinel:close`.
+type EmbedIframeOptions = Omit<RevinelTierSelectorOptions, "container"> & {
+  chrome?: "popup"
+  onRequestClose?: () => void
+}
+
 // Build the embed iframe element + its message listener. Shared by the inline
 // mount and the popup. `getOptions` is read live so `updateConfig` is reflected.
-const createEmbedIframe = (
-  getOptions: () => Omit<OpenAdsTierSelectorOptions, "container">,
-): { iframe: HTMLIFrameElement; destroy: () => void } => {
+function createEmbedIframe(getOptions: () => EmbedIframeOptions): {
+  iframe: HTMLIFrameElement
+  destroy: () => void
+} {
   const options = getOptions()
   const iframe = document.createElement("iframe")
 
@@ -63,7 +72,7 @@ const createEmbedIframe = (
   iframe.src = buildEmbedUrl(options)
 
   // Validate the sender, then let the shared dispatcher route the payload.
-  const onMessage = (event: MessageEvent) => {
+  function onMessage(event: MessageEvent) {
     if (!isEmbedMessage(event, iframe)) return
     const opts = getOptions()
 
@@ -74,6 +83,7 @@ const createEmbedIframe = (
       onReady: () => opts.onReady?.(),
       onCheckout: checkoutEvent => opts.onCheckout?.(checkoutEvent),
       onError: errorEvent => opts.onError?.(errorEvent),
+      onClose: () => opts.onRequestClose?.(),
     })
   }
   window.addEventListener("message", onMessage)
@@ -81,7 +91,7 @@ const createEmbedIframe = (
   return { iframe, destroy: () => window.removeEventListener("message", onMessage) }
 }
 
-export const mountTierSelector = (options: OpenAdsTierSelectorOptions): OpenAdsTierSelector => {
+export function mountTierSelector(options: RevinelTierSelectorOptions): RevinelTierSelector {
   if (typeof document === "undefined") {
     throw new Error("mountTierSelector can only run in a browser environment.")
   }
@@ -89,21 +99,21 @@ export const mountTierSelector = (options: OpenAdsTierSelectorOptions): OpenAdsT
   let currentOptions = options
   const container = resolveContainer(options.container)
   const hostElement = document.createElement("div")
-  hostElement.dataset.openadsTierSelector = "true"
+  hostElement.dataset.revinelTierSelector = "true"
   hostElement.style.width = "100%"
 
   const { iframe, destroy: destroyIframe } = createEmbedIframe(() => currentOptions)
   hostElement.appendChild(iframe)
   container.appendChild(hostElement)
 
-  const updateConfig = (nextOptions: Partial<Omit<OpenAdsTierSelectorOptions, "container">>) => {
+  function updateConfig(nextOptions: Partial<Omit<RevinelTierSelectorOptions, "container">>) {
     currentOptions = { ...currentOptions, ...nextOptions }
     const nextSrc = buildEmbedUrl(currentOptions)
     if (iframe.src !== nextSrc) iframe.src = nextSrc
     iframe.style.height = getHeight(currentOptions.height)
   }
 
-  const destroy = () => {
+  function destroy() {
     destroyIframe()
     hostElement.remove()
   }
@@ -111,45 +121,39 @@ export const mountTierSelector = (options: OpenAdsTierSelectorOptions): OpenAdsT
   return { hostElement, iframe, updateConfig, destroy }
 }
 
-export type OpenTierSelectorOptions = Omit<OpenAdsTierSelectorOptions, "container"> & {
+export type RevinelTierSelectorDialogOptions = Omit<RevinelTierSelectorOptions, "container"> & {
   /** Accessible label for the modal. */
   title?: string
   /** Fired when the modal is dismissed (close button, Esc, or backdrop). */
   onClose?: () => void
 }
 
-export type OpenTierSelector = {
+export interface RevinelTierSelectorDialog {
   /** Dismiss the modal programmatically. */
   close: () => void
 }
 
-const DIALOG_STYLE_ID = "openads-tier-selector-style"
+const DIALOG_STYLE_ID = "revinel-tier-selector-style"
 
 // Injected once. The native <dialog> gives focus-trap/Esc/top-layer/inerting;
-// this only adds the backdrop dim, panel chrome, and a reduced-motion-safe entry.
-const ensureDialogStyles = () => {
+// DIALOG_STYLES (shared with @revinel/react) adds the backdrop dim + panel chrome.
+function ensureDialogStyles() {
   if (document.getElementById(DIALOG_STYLE_ID)) return
 
   const style = document.createElement("style")
   style.id = DIALOG_STYLE_ID
-  style.textContent = [
-    "dialog[data-openads-dialog]{border:0;padding:0;background:transparent;max-width:min(48rem,calc(100vw - 2rem));width:100%}",
-    "dialog[data-openads-dialog]::backdrop{background:rgba(0,0,0,.5)}",
-    "[data-openads-dialog-panel]{position:relative;overflow:auto;max-height:85vh;border-radius:12px}",
-    "[data-openads-dialog-panel]>iframe{display:block}",
-    "button[data-openads-dialog-close]{position:absolute;top:8px;right:8px;z-index:1;width:32px;height:32px;border:0;border-radius:9999px;background:rgba(0,0,0,.5);color:#fff;font-size:22px;line-height:1;cursor:pointer}",
-    "@media(prefers-reduced-motion:no-preference){dialog[data-openads-dialog][open]{animation:openads-dialog-in .15s ease-out}}",
-    "@keyframes openads-dialog-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}",
-  ].join("")
+  style.textContent = DIALOG_STYLES
   document.head.appendChild(style)
 }
 
 /**
  * Open the tier selector in a modal overlay (native `<dialog>`). Returns a handle
  * to close it; `onClose` fires on any dismissal. Publishers wire this to their own
- * button, or use the `data-openads-tier-selector` attribute (see the script embed).
+ * button, or use the `data-revinel-tier-selector` attribute (see the script embed).
  */
-export const openTierSelector = (options: OpenTierSelectorOptions): OpenTierSelector => {
+export function openTierSelector(
+  options: RevinelTierSelectorDialogOptions,
+): RevinelTierSelectorDialog {
   if (typeof document === "undefined") {
     throw new Error("openTierSelector can only run in a browser environment.")
   }
@@ -157,21 +161,21 @@ export const openTierSelector = (options: OpenTierSelectorOptions): OpenTierSele
   ensureDialogStyles()
 
   const dialog = document.createElement("dialog")
-  dialog.dataset.openadsDialog = "true"
+  dialog.dataset.revinelDialog = "true"
   dialog.setAttribute("aria-label", options.title ?? "Advertise")
 
   const panel = document.createElement("div")
-  panel.dataset.openadsDialogPanel = "true"
+  panel.dataset.revinelDialogPanel = "true"
 
-  const closeButton = document.createElement("button")
-  closeButton.type = "button"
-  closeButton.dataset.openadsDialogClose = "true"
-  closeButton.setAttribute("aria-label", "Close")
-  closeButton.textContent = "×"
+  // The embed paints its own surface + close button (chrome:"popup"); the dialog is a bare
+  // shell. `onRequestClose` fires when that in-iframe close button posts `revinel:close`.
+  const { iframe, destroy: destroyIframe } = createEmbedIframe(() => ({
+    ...options,
+    chrome: "popup",
+    onRequestClose: () => dialog.close(),
+  }))
 
-  const { iframe, destroy: destroyIframe } = createEmbedIframe(() => options)
-
-  panel.append(closeButton, iframe)
+  panel.append(iframe)
   dialog.append(panel)
   document.body.appendChild(dialog)
 
@@ -179,7 +183,7 @@ export const openTierSelector = (options: OpenTierSelectorOptions): OpenTierSele
   document.body.style.overflow = "hidden"
 
   let cleanedUp = false
-  const cleanup = () => {
+  function cleanup() {
     if (cleanedUp) return
     cleanedUp = true
     destroyIframe()
@@ -188,7 +192,6 @@ export const openTierSelector = (options: OpenTierSelectorOptions): OpenTierSele
     options.onClose?.()
   }
 
-  closeButton.addEventListener("click", () => dialog.close())
   // A click whose target is the dialog itself lands on the ::backdrop (the panel
   // fills the dialog, and cross-origin iframe clicks don't bubble here).
   dialog.addEventListener("click", event => {

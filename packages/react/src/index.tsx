@@ -1,53 +1,53 @@
 export {
-  OpenAdsProvider,
-  type OpenAdsProviderProps,
-  type OpenAdsQueryState,
-  useOpenAdsClient,
+  RevinelProvider,
+  type RevinelProviderProps,
+  type RevinelQueryState,
+  useRevinelClient,
 } from "./provider"
 
 export {
-  type OpenAdsAdOptions,
-  type OpenAdsAdsOptions,
-  type OpenAdsCheckoutResult,
-  type OpenAdsTiersOptions,
-  type OpenAdsTrackingOptions,
-  type OpenAdsTrackingResult,
-  useOpenAdsAd,
-  useOpenAdsAds,
-  useOpenAdsCheckout,
-  useOpenAdsTiers,
-  useOpenAdsTracking,
+  type RevinelAdOptions,
+  type RevinelAdsOptions,
+  type RevinelCheckoutResult,
+  type RevinelTiersOptions,
+  type RevinelTrackingOptions,
+  type RevinelTrackingResult,
+  useAd,
+  useAds,
+  useCheckout,
+  useTiers,
+  useTracking,
 } from "./hooks"
 
 export {
   TierSelector,
-  type TierSelectorDialogProps,
+  type RevinelTierSelectorDialogProps,
   TierSelectorDialog,
-  type TierSelectorProps,
+  type RevinelTierSelectorProps,
 } from "./tier-selector"
 
-export { parseTierFeature } from "@openads/sdk"
+export { parseTierFeature } from "@revinel/sdk"
 
 export type {
-  OpenAdsEmbedCheckoutEvent,
-  OpenAdsEmbedErrorEvent,
-  OpenAdsEmbedMessage,
-  OpenAdsEmbedTheme,
-} from "@openads/embeds"
+  RevinelEmbedCheckoutEvent,
+  RevinelEmbedErrorEvent,
+  RevinelEmbedMessage,
+  RevinelEmbedTheme,
+} from "@revinel/embeds"
 
 export type {
-  OpenAdsAd,
-  OpenAdsBillingInterval,
-  OpenAdsCheckoutOptions,
-  OpenAdsCheckoutSession,
-  OpenAdsClient,
-  OpenAdsFieldType,
-  OpenAdsFieldValue,
-  OpenAdsPlacementListOptions,
-  OpenAdsPlacementOptions,
-  OpenAdsRequestOptions,
-  OpenAdsSerializableRequestOptions,
-  OpenAdsTier,
-  OpenAdsTierFeature,
-  OpenAdsTierPrice,
-} from "@openads/sdk"
+  RevinelAd,
+  RevinelBillingInterval,
+  RevinelCheckoutOptions,
+  RevinelCheckoutSession,
+  RevinelClient,
+  RevinelFieldType,
+  RevinelFieldValue,
+  RevinelPlacementListOptions,
+  RevinelPlacementOptions,
+  RevinelRequestOptions,
+  RevinelSerializableRequestOptions,
+  RevinelTier,
+  RevinelTierFeature,
+  RevinelTierPrice,
+} from "@revinel/sdk"

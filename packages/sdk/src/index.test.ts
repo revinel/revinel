@@ -1,11 +1,11 @@
 import { describe, expect, it } from "bun:test"
-import { createOpenAdsClient, OpenAdsApiError } from "./index"
+import { createRevinelClient, RevinelApiError } from "./index"
 
 const sampleAd = {
   id: "ad_123",
   name: "Acme",
   websiteUrl: "https://acme.test",
-  faviconUrl: "https://cdn.acme.test/workspaces/ws_openads/ads/ad_123/favicon.png",
+  faviconUrl: "https://cdn.acme.test/workspaces/ws_revinel/ads/ad_123/favicon.png",
   weight: 2.5,
   meta: { description: "Modern hosting" },
   fields: [
@@ -18,17 +18,18 @@ const sampleAd = {
   ],
 }
 
-describe("createOpenAdsClient", () => {
+describe("createRevinelClient", () => {
   it("fetches one ad with placement query parameters", async () => {
-    const calls: Array<{ url: string; options?: RequestInit }> = []
+    const calls: { url: string; options?: RequestInit }[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
     const fetcher: typeof fetch = async (url, options) => {
       calls.push({ url: String(url), options })
       return Response.json({ ads: [sampleAd] })
     }
 
-    const client = createOpenAdsClient({
+    const client = createRevinelClient({
       workspaceId: "ws_openalternative",
-      apiUrl: "https://api.openads.test/",
+      apiUrl: "https://api.revinel.test/",
       fetch: fetcher,
     })
 
@@ -41,22 +42,23 @@ describe("createOpenAdsClient", () => {
     expect(ad).toEqual(sampleAd)
     expect(calls).toEqual([
       {
-        url: "https://api.openads.test/v1/workspaces/ws_openalternative/ads/current?weightGte=2.5&excludeIds=ad_old&count=1",
+        url: "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weightGte=2.5&excludeIds=ad_old&count=1",
         options: { cache: "no-store", headers: {} },
       },
     ])
   })
 
   it("fetches multiple ads for sponsor grids", async () => {
-    const calls: Array<string> = []
+    const calls: string[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
     const fetcher: typeof fetch = async url => {
       calls.push(String(url))
       return Response.json({ ads: [sampleAd] })
     }
 
-    const client = createOpenAdsClient({
+    const client = createRevinelClient({
       workspaceId: "ws_openalternative",
-      apiUrl: "https://api.openads.test",
+      apiUrl: "https://api.revinel.test",
       fetch: fetcher,
     })
 
@@ -64,20 +66,21 @@ describe("createOpenAdsClient", () => {
 
     expect(ads).toEqual([sampleAd])
     expect(calls[0]).toBe(
-      "https://api.openads.test/v1/workspaces/ws_openalternative/ads/current?weightGte=2.5&count=5",
+      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weightGte=2.5&count=5",
     )
   })
 
   it("records impressions and clicks", async () => {
-    const calls: Array<{ url: string; method?: string }> = []
+    const calls: { url: string; method?: string }[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
     const fetcher: typeof fetch = async (url, options) => {
       calls.push({ url: String(url), method: options?.method })
       return Response.json({ success: true })
     }
 
-    const client = createOpenAdsClient({
+    const client = createRevinelClient({
       workspaceId: "ws_openalternative",
-      apiUrl: "https://api.openads.test",
+      apiUrl: "https://api.revinel.test",
       fetch: fetcher,
     })
 
@@ -85,12 +88,13 @@ describe("createOpenAdsClient", () => {
     await client.recordClick("ad_123")
 
     expect(calls).toEqual([
-      { url: "https://api.openads.test/v1/ads/ad_123/impression", method: "POST" },
-      { url: "https://api.openads.test/v1/ads/ad_123/click", method: "POST" },
+      { url: "https://api.revinel.test/v1/ads/ad_123/impression", method: "POST" },
+      { url: "https://api.revinel.test/v1/ads/ad_123/click", method: "POST" },
     ])
   })
 
   it("throws typed API errors for failed requests", async () => {
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
     const fetcher: typeof fetch = async () => {
       // Public API errors use the same envelope as the OpenAPI surface.
       return Response.json(
@@ -99,12 +103,12 @@ describe("createOpenAdsClient", () => {
       )
     }
 
-    const client = createOpenAdsClient({
+    const client = createRevinelClient({
       workspaceId: "ws_missing",
-      apiUrl: "https://api.openads.test",
+      apiUrl: "https://api.revinel.test",
       fetch: fetcher,
     })
 
-    await expect(client.getAd()).rejects.toBeInstanceOf(OpenAdsApiError)
+    await expect(client.getAd()).rejects.toBeInstanceOf(RevinelApiError)
   })
 })

@@ -1,22 +1,22 @@
 {
-  "name": "@openads/embeds",
+  "name": "@revinel/embeds",
   "version": "0.1.0",
   "private": false,
-  "description": "Shared OpenAds embed protocol — the postMessage contract between the embed iframe and its host wrappers.",
+  "description": "Shared Revinel embed protocol — the postMessage contract between the embed iframe and its host wrappers.",
   "keywords": [
     "ads",
     "advertising",
     "embed",
-    "openads",
     "postmessage",
-    "protocol"
+    "protocol",
+    "revinel"
   ],
-  "homepage": "https://github.com/piotrkulpinski/openads-js/tree/main/packages/embeds#readme",
+  "homepage": "https://github.com/revinel/revinel/tree/main/packages/embeds#readme",
   "license": "MIT",
   "author": "Piotr Kulpinski",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/piotrkulpinski/openads-js.git",
+    "url": "git+https://github.com/revinel/revinel.git",
     "directory": "packages/embeds"
   },
   "files": [
@@ -44,7 +44,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@openads/tsconfig": "*",
+    "@revinel/tsconfig": "*",
     "typescript": "^6.0.3"
   }
 }

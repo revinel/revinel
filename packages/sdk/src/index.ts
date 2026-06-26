@@ -1,16 +1,16 @@
-const DEFAULT_API_URL = "https://api.openads.co"
+const DEFAULT_API_URL = "https://api.revinel.com"
 
 // Mirrors the Prisma `FieldType` enum (packages/db/prisma/models/field.prisma).
 // Kept as a standalone literal union because the SDK is published with zero
-// deps and cannot import `@openads/db`; the server tightens its `/v1` schema to
+// deps and cannot import `@revinel/db`; the server tightens its `/v1` schema to
 // the same enum, so any drift surfaces in `/v1/openapi.json`.
-export type OpenAdsFieldType = "Text" | "Textarea" | "Url" | "Number" | "Switch" | "Image"
+export type RevinelFieldType = "Text" | "Textarea" | "Url" | "Number" | "Switch" | "Image"
 
-export type OpenAdsFieldValue = {
+export interface RevinelFieldValue {
   id: string
   key: string
   name: string
-  type: OpenAdsFieldType
+  type: RevinelFieldType
   value: unknown
 }
 
@@ -18,60 +18,60 @@ export type OpenAdsFieldValue = {
  * `meta` is keyed by each field's stable machine slug. Pass your own interface
  * as `TMeta` (e.g. `getAd<{ bannerImage?: string }>()`) for typesafe access.
  */
-export type OpenAdsAd<TMeta = Record<string, unknown>> = {
+export interface RevinelAd<TMeta = Record<string, unknown>> {
   id: string
   name: string
   websiteUrl: string
   faviconUrl: string
   weight: number
   meta: TMeta
-  fields: Array<OpenAdsFieldValue>
+  fields: RevinelFieldValue[]
 }
 
-export type OpenAdsBillingInterval = "Day" | "Week" | "Month" | "Year"
+export type RevinelBillingInterval = "Day" | "Week" | "Month" | "Year"
 
-export type OpenAdsTierPrice = {
+export interface RevinelTierPrice {
   id: string
-  interval: OpenAdsBillingInterval
+  interval: RevinelBillingInterval
   intervalCount: number
   /** Amount in the smallest currency unit (cents). */
   amount: number
   currency: string
 }
 
-export type OpenAdsTier = {
+export interface RevinelTier {
   id: string
   name: string
   description: string
   weight: number
   order: number
   /** Raw feature strings; parse with `parseTierFeature`. */
-  features: Array<string>
-  prices: Array<OpenAdsTierPrice>
+  features: string[]
+  prices: RevinelTierPrice[]
 }
 
-export type OpenAdsTierFeatureType = "positive" | "neutral" | "negative"
+export type RevinelTierFeatureType = "positive" | "neutral" | "negative"
 
-export type OpenAdsTierFeature = {
-  type: OpenAdsTierFeatureType
+export interface RevinelTierFeature {
+  type: RevinelTierFeatureType
   label: string
 }
 
-export type OpenAdsCheckoutOptions = {
+export interface RevinelCheckoutOptions {
   tierPriceId: string
   /** Pre-fills the email on the Stripe Checkout page. */
   email?: string
-  /** Where Stripe returns the visitor on cancel. Success always stays on OpenAds. */
+  /** Where Stripe returns the visitor on cancel. Success always stays on Revinel. */
   cancelUrl?: string
 }
 
-export type OpenAdsCheckoutSession = {
+export interface RevinelCheckoutSession {
   url: string
   sessionId: string
 }
 
 // Feature strings are stored with a leading glyph that encodes intent.
-const TIER_FEATURE_PREFIXES: Record<OpenAdsTierFeatureType, string> = {
+const TIER_FEATURE_PREFIXES: Record<RevinelTierFeatureType, string> = {
   positive: "✓ ",
   neutral: "• ",
   negative: "✗ ",
@@ -81,7 +81,7 @@ const TIER_FEATURE_PREFIXES: Record<OpenAdsTierFeatureType, string> = {
  * Splits a tier feature string into its intent (`positive`/`neutral`/`negative`)
  * and display label. Unprefixed strings are treated as neutral.
  */
-export const parseTierFeature = (raw: string): OpenAdsTierFeature => {
+export function parseTierFeature(raw: string): RevinelTierFeature {
   for (const type of ["positive", "neutral", "negative"] as const) {
     const prefix = TIER_FEATURE_PREFIXES[type]
     if (raw.startsWith(prefix)) {
@@ -92,19 +92,19 @@ export const parseTierFeature = (raw: string): OpenAdsTierFeature => {
 }
 
 /** Extra `fetch` options merged into every request. */
-export type OpenAdsRequestOptions = RequestInit & {
+export type RevinelRequestOptions = RequestInit & {
   /** Next.js `fetch` extension (App Router caching). Ignored by other runtimes. */
-  next?: { revalidate?: number | false; tags?: Array<string> }
+  next?: { revalidate?: number | false; tags?: string[] }
 }
 
 /**
- * The JSON-serializable subset of `OpenAdsRequestOptions`. The React bindings
+ * The JSON-serializable subset of `RevinelRequestOptions`. The React bindings
  * memoize the client and hook fetches on `JSON.stringify(request)`, so they
  * accept only this shape — `Headers` instances, `AbortSignal`, streams, and
  * other non-serializable `RequestInit` values would silently never invalidate
  * the memo.
  */
-export type OpenAdsSerializableRequestOptions = {
+export interface RevinelSerializableRequestOptions {
   method?: string
   headers?: Record<string, string>
   cache?: RequestCache
@@ -112,64 +112,64 @@ export type OpenAdsSerializableRequestOptions = {
   mode?: RequestMode
   keepalive?: boolean
   referrerPolicy?: ReferrerPolicy
-  next?: { revalidate?: number | false; tags?: Array<string> }
+  next?: { revalidate?: number | false; tags?: string[] }
 }
 
-export type OpenAdsClientOptions = {
+export interface RevinelClientOptions {
   workspaceId: string
   apiUrl?: string
   fetch?: typeof fetch
-  request?: OpenAdsRequestOptions
+  request?: RevinelRequestOptions
 }
 
-export type OpenAdsPlacementOptions = {
+export interface RevinelPlacementOptions {
   weightGte?: number
-  excludeIds?: Array<string>
-  request?: OpenAdsRequestOptions
+  excludeIds?: string[]
+  request?: RevinelRequestOptions
 }
 
-export type OpenAdsPlacementListOptions = OpenAdsPlacementOptions & {
+export type RevinelPlacementListOptions = RevinelPlacementOptions & {
   count?: number
 }
 
-export type OpenAdsTrackOptions = {
-  request?: OpenAdsRequestOptions
+export interface RevinelTrackOptions {
+  request?: RevinelRequestOptions
 }
 
-type TrackResponse = {
+interface TrackResponse {
   success: boolean
 }
 
-export class OpenAdsApiError extends Error {
+export class RevinelApiError extends Error {
   status: number
   body: unknown
 
   constructor(status: number, body: unknown) {
-    super(`OpenAds API request failed with status ${status}`)
-    this.name = "OpenAdsApiError"
+    super(`Revinel API request failed with status ${status}`)
+    this.name = "RevinelApiError"
     this.status = status
     this.body = body
   }
 }
 
-const trimTrailingSlash = (value: string): string => {
+function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "")
 }
 
-const getFetch = (customFetch?: typeof fetch): typeof fetch => {
+function getFetch(customFetch?: typeof fetch): typeof fetch {
   if (customFetch) return customFetch
 
   if (!globalThis.fetch) {
-    throw new Error("OpenAds SDK requires a fetch implementation.")
+    throw new Error("Revinel SDK requires a fetch implementation.")
   }
 
   return globalThis.fetch.bind(globalThis)
 }
 
-const mergeRequestOptions = (
-  base: OpenAdsRequestOptions | undefined,
-  next: OpenAdsRequestOptions | undefined,
-): OpenAdsRequestOptions => {
+function mergeRequestOptions(
+  base: RevinelRequestOptions | undefined,
+  next: RevinelRequestOptions | undefined,
+): RevinelRequestOptions {
   const headers = new Headers(base?.headers)
   new Headers(next?.headers).forEach((value, key) => {
     headers.set(key, value)
@@ -182,35 +182,35 @@ const mergeRequestOptions = (
   }
 }
 
-const readJson = async <T>(response: Response): Promise<T> => {
+async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => null)
-    throw new OpenAdsApiError(response.status, body)
+    throw new RevinelApiError(response.status, body)
   }
 
   return (await response.json()) as T
 }
 
-export const createOpenAdsClient = ({
+export function createRevinelClient({
   workspaceId,
   apiUrl = DEFAULT_API_URL,
   fetch: customFetch,
   request,
-}: OpenAdsClientOptions) => {
+}: RevinelClientOptions) {
   const baseUrl = trimTrailingSlash(apiUrl)
   const fetcher = getFetch(customFetch)
 
-  const fetchJson = async <T>(path: string, options?: OpenAdsRequestOptions): Promise<T> => {
+  async function fetchJson<T>(path: string, options?: RevinelRequestOptions): Promise<T> {
     const response = await fetcher(`${baseUrl}${path}`, mergeRequestOptions(request, options))
 
     return await readJson<T>(response)
   }
 
-  const buildCurrentAdsPath = ({
+  function buildCurrentAdsPath({
     weightGte,
     excludeIds,
     count,
-  }: OpenAdsPlacementListOptions = {}): string => {
+  }: RevinelPlacementListOptions = {}): string {
     const params = new URLSearchParams()
     if (weightGte !== undefined) params.set("weightGte", String(weightGte))
     if (excludeIds?.length) params.set("excludeIds", excludeIds.join(","))
@@ -221,11 +221,11 @@ export const createOpenAdsClient = ({
     return query ? `${path}?${query}` : path
   }
 
-  const getAds = async <TMeta = Record<string, unknown>>({
+  async function getAds<TMeta = Record<string, unknown>>({
     request: placementRequest,
     ...options
-  }: OpenAdsPlacementListOptions = {}): Promise<Array<OpenAdsAd<TMeta>>> => {
-    const response = await fetchJson<{ ads: Array<OpenAdsAd<TMeta>> }>(
+  }: RevinelPlacementListOptions = {}): Promise<RevinelAd<TMeta>[]> {
+    const response = await fetchJson<{ ads: RevinelAd<TMeta>[] }>(
       buildCurrentAdsPath(options),
       placementRequest,
     )
@@ -233,27 +233,27 @@ export const createOpenAdsClient = ({
     return response.ads
   }
 
-  const getAd = async <TMeta = Record<string, unknown>>(
-    options: OpenAdsPlacementOptions = {},
-  ): Promise<OpenAdsAd<TMeta> | null> => {
+  async function getAd<TMeta = Record<string, unknown>>(
+    options: RevinelPlacementOptions = {},
+  ): Promise<RevinelAd<TMeta> | null> {
     const ads = await getAds<TMeta>({ ...options, count: 1 })
     return ads[0] ?? null
   }
 
-  const recordEvent =
-    (kind: "impression" | "click") =>
-    (adId: string, options: OpenAdsTrackOptions = {}): Promise<TrackResponse> =>
+  function recordEvent(kind: "impression" | "click") {
+    return (adId: string, options: RevinelTrackOptions = {}): Promise<TrackResponse> =>
       fetchJson<TrackResponse>(`/v1/ads/${encodeURIComponent(adId)}/${kind}`, {
         method: "POST",
         keepalive: true,
         ...options.request,
       })
+  }
 
   const recordImpression = recordEvent("impression")
   const recordClick = recordEvent("click")
 
-  const getTiers = async (options: OpenAdsRequestOptions = {}): Promise<Array<OpenAdsTier>> => {
-    const response = await fetchJson<{ tiers: Array<OpenAdsTier> }>(
+  async function getTiers(options: RevinelRequestOptions = {}): Promise<RevinelTier[]> {
+    const response = await fetchJson<{ tiers: RevinelTier[] }>(
       `/v1/workspaces/${encodeURIComponent(workspaceId)}/tiers`,
       options,
     )
@@ -261,16 +261,17 @@ export const createOpenAdsClient = ({
     return response.tiers
   }
 
-  const createCheckout = (
-    { tierPriceId, email, cancelUrl }: OpenAdsCheckoutOptions,
-    options: OpenAdsRequestOptions = {},
-  ): Promise<OpenAdsCheckoutSession> =>
-    fetchJson<OpenAdsCheckoutSession>("/v1/checkout", {
+  function createCheckout(
+    { tierPriceId, email, cancelUrl }: RevinelCheckoutOptions,
+    options: RevinelRequestOptions = {},
+  ): Promise<RevinelCheckoutSession> {
+    return fetchJson<RevinelCheckoutSession>("/v1/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ tierPriceId, email, cancelUrl }),
       ...options,
     })
+  }
 
   return {
     getAd,
@@ -282,4 +283,4 @@ export const createOpenAdsClient = ({
   }
 }
 
-export type OpenAdsClient = ReturnType<typeof createOpenAdsClient>
+export type RevinelClient = ReturnType<typeof createRevinelClient>

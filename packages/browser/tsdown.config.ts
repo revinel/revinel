@@ -32,8 +32,8 @@ export default defineConfig([
     treeshake: true,
     unbundle: false,
     // The IIFE must be fully self-contained for a plain <script> tag, so inline
-    // workspace deps (e.g. @openads/embeds) instead of externalizing them.
-    noExternal: [/^@openads\//],
+    // workspace deps (e.g. @revinel/embeds) instead of externalizing them.
+    noExternal: [/^@revinel\//],
     outExtensions: () => {
       return {
         js: ".js",

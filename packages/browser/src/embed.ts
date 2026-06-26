@@ -1,31 +1,36 @@
 // Script bootstrap for the zero-build `<script src=".../embed.js">` integration.
 // Built to an IIFE and synced to `apps/app/public/embed.js` (see tsdown.config
 // + scripts/sync-embed.ts). The mount/iframe logic lives ONLY in
-// `mountTierSelector` (./index) — this file just adds the `window.OpenAds`
+// `mountTierSelector` (./index) — this file just adds the `window.Revinel`
 // queue/singleton wrapper that the script snippet depends on.
-import type { OpenAdsEmbedTheme } from "@openads/embeds"
+import type { RevinelEmbedTheme } from "@revinel/embeds"
 import {
   mountTierSelector,
-  type OpenAdsTierSelector,
-  type OpenAdsTierSelectorOptions,
+  type RevinelTierSelector,
+  type RevinelTierSelectorOptions,
   openTierSelector,
-  type OpenTierSelector,
-  type OpenTierSelectorOptions,
+  type RevinelTierSelectorDialog,
+  type RevinelTierSelectorDialogOptions,
 } from "./index"
 
-type QueueItem = { method: "init" | "updateConfig" | "destroy" | "open"; args: Array<unknown> }
+interface QueueItem {
+  method: "init" | "updateConfig" | "destroy" | "open"
+  args: unknown[]
+}
 
-type OpenAdsGlobal = {
-  q?: Array<QueueItem>
-  init: (options?: Partial<OpenAdsTierSelectorOptions>) => OpenAdsTierSelector | undefined
-  updateConfig: (options?: Partial<Omit<OpenAdsTierSelectorOptions, "container">>) => void
+interface RevinelGlobal {
+  q?: QueueItem[]
+  init: (options?: Partial<RevinelTierSelectorOptions>) => RevinelTierSelector | undefined
+  updateConfig: (options?: Partial<Omit<RevinelTierSelectorOptions, "container">>) => void
   destroy: () => void
-  open: (options?: Partial<OpenTierSelectorOptions>) => OpenTierSelector | undefined
+  open: (
+    options?: Partial<RevinelTierSelectorDialogOptions>,
+  ) => RevinelTierSelectorDialog | undefined
 }
 
 declare global {
   interface Window {
-    OpenAds?: OpenAdsGlobal
+    Revinel?: RevinelGlobal
   }
 }
 
@@ -34,26 +39,26 @@ declare global {
   const currentScript = document.currentScript as HTMLScriptElement | null
   const appUrl = currentScript?.src ? new URL(currentScript.src).origin : window.location.origin
 
-  const existing = window.OpenAds
+  const existing = window.Revinel
   const queue = Array.isArray(existing?.q) ? existing.q : []
 
-  let widget: OpenAdsTierSelector | null = null
-  let pendingConfig: Partial<Omit<OpenAdsTierSelectorOptions, "container">> = {}
+  let widget: RevinelTierSelector | null = null
+  let pendingConfig: Partial<Omit<RevinelTierSelectorOptions, "container">> = {}
 
-  const api: OpenAdsGlobal = {
+  const api: RevinelGlobal = {
     init(options = {}) {
       const { workspaceId, container, ...rest } = { ...pendingConfig, ...options }
 
       if (!workspaceId) {
-        throw new Error("OpenAds: workspaceId is required.")
+        throw new Error("Revinel: workspaceId is required.")
       }
       if (!container) {
-        throw new Error("OpenAds: container is required.")
+        throw new Error("Revinel: container is required.")
       }
 
       // Pass the script-origin appUrl explicitly so mountTierSelector never
       // falls back to the packaged DEFAULT_EMBED_APP_URL constant.
-      const resolved: OpenAdsTierSelectorOptions = {
+      const resolved: RevinelTierSelectorOptions = {
         ...rest,
         workspaceId,
         container,
@@ -86,35 +91,35 @@ declare global {
       const { workspaceId, ...rest } = { ...pendingConfig, ...options }
 
       if (!workspaceId) {
-        throw new Error("OpenAds: workspaceId is required.")
+        throw new Error("Revinel: workspaceId is required.")
       }
 
       return openTierSelector({ ...rest, workspaceId, appUrl: rest.appUrl || appUrl })
     },
   }
 
-  window.OpenAds = api
+  window.Revinel = api
 
   // No-code trigger: open the modal when an element marked
-  // `data-openads-tier-selector` is clicked, configured from its `data-openads-*`.
+  // `data-revinel-tier-selector` is clicked, configured from its `data-revinel-*`.
   document.addEventListener("click", event => {
-    const trigger = (event.target as Element | null)?.closest("[data-openads-tier-selector]")
+    const trigger = (event.target as Element | null)?.closest("[data-revinel-tier-selector]")
     if (!(trigger instanceof HTMLElement)) return
 
-    const { openadsWorkspaceId, openadsTheme } = trigger.dataset
-    if (!openadsWorkspaceId) return
+    const { revinelWorkspaceId, revinelTheme } = trigger.dataset
+    if (!revinelWorkspaceId) return
 
     event.preventDefault()
     api.open({
-      workspaceId: openadsWorkspaceId,
-      ...(openadsTheme ? { theme: openadsTheme as OpenAdsEmbedTheme } : {}),
+      workspaceId: revinelWorkspaceId,
+      ...(revinelTheme ? { theme: revinelTheme as RevinelEmbedTheme } : {}),
     })
   })
 
   for (const item of queue) {
     const method = api[item.method]
     if (typeof method === "function") {
-      ;(method as (...args: Array<unknown>) => unknown)(...item.args)
+      ;(method as (...args: unknown[]) => unknown)(...item.args)
     }
   }
 })(window)
