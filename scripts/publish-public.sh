@@ -11,7 +11,19 @@
 # Idempotent: any version already on npm is skipped, so running on every sync is a safe
 # no-op until the private monorepo bumps a version. The four packages share one version
 # (changesets `fixed` group), so a single umbrella GitHub Release is cut per version.
+#
+# Stable vs beta is driven entirely by the version string (set upstream by changesets,
+# incl. its prerelease mode): a prerelease like 0.1.0-beta.0 publishes under that dist-tag
+# (`beta`) and is flagged a GitHub prerelease; a plain version goes to `latest`.
 set -euo pipefail
+
+# 0.1.0-beta.2 -> beta ; 1.2.3-rc.0 -> rc ; 1.2.3 -> latest
+disttag_for() {
+  case "$1" in
+    *-*) printf '%s' "${1#*-}" | cut -d. -f1 ;;
+    *) printf 'latest' ;;
+  esac
+}
 
 PACKAGES=(embeds sdk react browser)
 published=()
@@ -26,8 +38,11 @@ for pkg in "${PACKAGES[@]}"; do
     continue
   fi
 
-  echo "publishing $name@$version"
-  (cd "$dist" && npm publish --provenance --access public)
+  tag=$(disttag_for "$version")
+  echo "publishing $name@$version (dist-tag: $tag)"
+  # Auth + provenance come from OIDC trusted publishing (configured per package on npmjs.com);
+  # npm >= 11.5.1 under id-token:write attests provenance automatically — no token, no --provenance.
+  (cd "$dist" && npm publish --access public --tag "$tag")
   published+=("$name@$version")
 done
 
@@ -45,7 +60,10 @@ if gh release view "$tag" >/dev/null 2>&1; then
   exit 0
 fi
 
+release_args=(--title "$tag" --notes-file -)
+case "$version" in *-*) release_args+=(--prerelease) ;; esac
+
 git tag "$tag"
 git push origin "$tag"
-printf -- '- %s\n' "${published[@]}" | gh release create "$tag" --title "$tag" --notes-file -
+printf -- '- %s\n' "${published[@]}" | gh release create "$tag" "${release_args[@]}"
 echo "created release $tag"
