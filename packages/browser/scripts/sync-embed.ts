@@ -1,7 +1,7 @@
 // Copies the built IIFE (dist/embed.iife.js) to the static asset that apps/app
 // serves at GET /embed.js, prepending a "do not edit" banner. Runs as the last
 // step of `@revinel/browser` build, so embed.js is regenerated whenever the
-// package is built (turbo build / changeset:publish), never during dev.
+// package is built (turbo build), never during dev.
 import { readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import process from "node:process"
