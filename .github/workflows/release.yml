@@ -1,0 +1,56 @@
+# Canonical copy of the PUBLIC mirror's publish workflow. This file lives in the mirror at
+# .github/workflows/release.yml — it is NOT synced automatically (pushing workflow files
+# would require the sync PAT to carry the `workflow` scope). Apply it per scripts/mirror/README.md.
+#
+# Builds and publishes the four @revinel/* client packages to npm and cuts a GitHub Release
+# on the mirror, on every push to main. Versions are produced upstream in the private monorepo
+# and arrive via the sync commit; this repo only publishes them. scripts/publish-public.sh is
+# idempotent, so pushes that don't change a version are no-ops.
+#
+# Auth is OIDC trusted publishing — NO NPM_TOKEN. Each package must have a trusted publisher
+# configured on npmjs.com (GitHub org `revinel`, repo `revinel`, workflow `release.yml`), which
+# requires the package to exist first (see the bootstrap step in scripts/mirror/README.md).
+# Provenance is attested automatically under id-token:write + npm >= 11.5.1.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write # git tags + GitHub Releases
+  id-token: write # OIDC trusted publishing to npm (no token) + provenance
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      # node for the publish/release scripts; trusted publishing needs node >= 22.14.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # Trusted publishing requires npm >= 11.5.1 (newer than what node bundles).
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build, publish, release
+        run: bun run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
