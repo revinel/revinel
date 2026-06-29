@@ -93,5 +93,6 @@ Input-validation failures use HTTP **422** with `code: "INPUT_VALIDATION_FAILED"
 
 ## API reference
 
-OpenAPI spec and interactive docs are served at `/v1/openapi.json` and `/v1/docs` on the
-Revinel API. For React bindings see [`@revinel/react`](https://www.npmjs.com/package/@revinel/react).
+Full reference and guides: **[docs.revinel.com](https://docs.revinel.com)**. The OpenAPI
+spec is served at `/v1/openapi.json` on the Revinel API. For React bindings see
+[`@revinel/react`](https://www.npmjs.com/package/@revinel/react).

@@ -20,5 +20,5 @@ land here on the next release (a pull request may be closed in favor of the equi
 
 ## API reference
 
-OpenAPI spec and interactive docs are served at `/v1/openapi.json` and `/v1/docs`
-on the Revinel API.
+Full reference and guides: **[docs.revinel.com](https://docs.revinel.com)**. The OpenAPI
+spec is served at `/v1/openapi.json` on the Revinel API.
