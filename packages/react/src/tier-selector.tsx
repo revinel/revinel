@@ -12,10 +12,12 @@ import {
   type RevinelEmbedTheme,
 } from "@revinel/embeds"
 import { type CSSProperties, useEffect, useRef, useState } from "react"
+import { useRevinelConfig } from "./provider"
 
 export interface RevinelTierSelectorProps {
-  workspaceId: string
-  /** Origin of the Revinel app serving `/embed`. Defaults to the hosted app. */
+  /** Falls back to the `RevinelProvider`'s `workspaceId` when omitted. */
+  workspaceId?: string
+  /** Origin of the Revinel app serving `/embed`. Falls back to the provider, then the hosted app. */
   appUrl?: string
   theme?: RevinelEmbedTheme
   /** Height (px) shown until the embed reports its real content height. */
@@ -44,7 +46,7 @@ type EmbedIframeProps = RevinelTierSelectorProps & {
  */
 function EmbedIframe({
   workspaceId,
-  appUrl = DEFAULT_EMBED_APP_URL,
+  appUrl,
   theme = "auto",
   height = DEFAULT_EMBED_HEIGHT,
   className,
@@ -58,13 +60,26 @@ function EmbedIframe({
 }: EmbedIframeProps) {
   const ref = useRef<HTMLIFrameElement>(null)
   const [resolvedHeight, setResolvedHeight] = useState(height)
+  const config = useRevinelConfig()
 
   // Keep the latest callbacks in a ref so the listener doesn't re-subscribe when
   // inline handlers change identity each render.
   const handlersRef = useRef({ onReady, onCheckout, onError, onRequestClose })
   handlersRef.current = { onReady, onCheckout, onError, onRequestClose }
 
-  const src = buildEmbedUrl({ appUrl, workspaceId, theme, chrome })
+  const resolvedWorkspaceId = workspaceId ?? config.workspaceId
+  if (!resolvedWorkspaceId) {
+    throw new Error(
+      "TierSelector requires a workspaceId — pass it as a prop or wrap in <RevinelProvider workspaceId>.",
+    )
+  }
+
+  const src = buildEmbedUrl({
+    appUrl: appUrl ?? config.appUrl ?? DEFAULT_EMBED_APP_URL,
+    workspaceId: resolvedWorkspaceId,
+    theme,
+    chrome,
+  })
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {

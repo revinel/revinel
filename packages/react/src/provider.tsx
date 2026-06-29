@@ -32,35 +32,60 @@ export interface RevinelQueryState<TData> {
 }
 
 export type RevinelProviderProps = PropsWithChildren<
-  Omit<RevinelClientOptions, "request"> & SerializableRequest
+  Omit<RevinelClientOptions, "request"> &
+    SerializableRequest & {
+      /** Origin of the Revinel app serving `/embed`, inherited by `<TierSelector>`. */
+      appUrl?: string
+    }
 >
 
-const RevinelContext = createContext<RevinelClient | null>(null)
+interface RevinelContextValue {
+  client: RevinelClient
+  workspaceId: string
+  appUrl?: string
+}
+
+const RevinelContext = createContext<RevinelContextValue | null>(null)
 
 export function RevinelProvider({
   children,
   workspaceId,
   apiUrl,
+  appUrl,
   fetch,
   request,
 }: RevinelProviderProps) {
   const requestKey = JSON.stringify(request)
 
-  const client = useMemo(() => {
-    return createRevinelClient({ workspaceId, apiUrl, fetch, request })
-  }, [apiUrl, fetch, requestKey, workspaceId])
+  const value = useMemo<RevinelContextValue>(() => {
+    return {
+      client: createRevinelClient({ workspaceId, apiUrl, fetch, request }),
+      workspaceId,
+      appUrl,
+    }
+  }, [apiUrl, appUrl, fetch, requestKey, workspaceId])
 
-  return <RevinelContext.Provider value={client}>{children}</RevinelContext.Provider>
+  return <RevinelContext.Provider value={value}>{children}</RevinelContext.Provider>
 }
 
 export function useRevinelClient(): RevinelClient {
-  const client = useContext(RevinelContext)
+  const context = useContext(RevinelContext)
 
-  if (!client) {
+  if (!context) {
     throw new Error("useRevinelClient must be used within RevinelProvider.")
   }
 
-  return client
+  return context.client
+}
+
+/**
+ * Reads `workspaceId` / `appUrl` from the nearest provider, or `{}` when used
+ * outside one. Non-throwing on purpose — lets `<TierSelector>` inherit provider
+ * config while still working standalone with explicit props.
+ */
+export function useRevinelConfig(): { workspaceId?: string; appUrl?: string } {
+  const context = useContext(RevinelContext)
+  return { workspaceId: context?.workspaceId, appUrl: context?.appUrl }
 }
 
 export function getError(value: unknown): Error {

@@ -3,6 +3,7 @@ export {
   type RevinelProviderProps,
   type RevinelQueryState,
   useRevinelClient,
+  useRevinelConfig,
 } from "./provider"
 
 export {
@@ -43,6 +44,8 @@ export type {
   RevinelClient,
   RevinelFieldType,
   RevinelFieldValue,
+  RevinelMeta,
+  RevinelMetaRegistry,
   RevinelPlacementListOptions,
   RevinelPlacementOptions,
   RevinelRequestOptions,

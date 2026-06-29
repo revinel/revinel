@@ -4,6 +4,7 @@ import {
   type RevinelAd,
   type RevinelCheckoutOptions,
   type RevinelCheckoutSession,
+  type RevinelMeta,
   type RevinelPlacementListOptions,
   type RevinelPlacementOptions,
   type RevinelTier,
@@ -49,7 +50,7 @@ export interface RevinelTrackingResult {
   ) => HTMLAttributes<TElement>
 }
 
-export function useAd<TMeta = Record<string, unknown>>({
+export function useAd<TMeta = RevinelMeta>({
   enabled = true,
   weightGte,
   excludeIds,
@@ -69,7 +70,7 @@ export function useAd<TMeta = Record<string, unknown>>({
   return useRevinelQuery<RevinelAd<TMeta> | null>(enabled, null, getData)
 }
 
-export function useAds<TMeta = Record<string, unknown>>({
+export function useAds<TMeta = RevinelMeta>({
   enabled = true,
   weightGte,
   excludeIds,
@@ -88,21 +89,24 @@ export function useAds<TMeta = Record<string, unknown>>({
   return useRevinelQuery<RevinelAd<TMeta>[]>(enabled, [], getData)
 }
 
-export function useTracking<TMeta = Record<string, unknown>>(
-  ad: RevinelAd<TMeta> | null | undefined,
+export function useTracking(
+  // Only the id is read, so accept the id directly or anything carrying one (the
+  // full ad, or a reduced render shape of your own).
+  ad: { id: string } | string | null | undefined,
   { disabled = false, threshold = 0.5, viewabilityDurationMs = 500 }: RevinelTrackingOptions = {},
 ): RevinelTrackingResult {
   const client = useRevinelClient()
   const [element, setElement] = useState<HTMLElement | null>(null)
   const trackedAdId = useRef<string | null>(null)
+  const adId = (typeof ad === "string" ? ad : ad?.id) ?? null
 
   const impressionRef = useCallback<RefCallback<HTMLElement>>(node => {
     setElement(node)
   }, [])
 
   useEffect(() => {
-    if (disabled || !ad || !element || typeof IntersectionObserver === "undefined") return
-    if (trackedAdId.current === ad.id) return
+    if (disabled || !adId || !element || typeof IntersectionObserver === "undefined") return
+    if (trackedAdId.current === adId) return
 
     let timer: ReturnType<typeof setTimeout> | null = null
 
@@ -110,9 +114,9 @@ export function useTracking<TMeta = Record<string, unknown>>(
       ([entry]) => {
         if (entry?.isIntersecting) {
           timer = setTimeout(() => {
-            if (trackedAdId.current === ad.id) return
-            trackedAdId.current = ad.id
-            client.recordImpression(ad.id).catch(() => {})
+            if (trackedAdId.current === adId) return
+            trackedAdId.current = adId
+            client.recordImpression(adId).catch(() => {})
           }, viewabilityDurationMs)
           return
         }
@@ -131,12 +135,12 @@ export function useTracking<TMeta = Record<string, unknown>>(
       observer.disconnect()
       if (timer) clearTimeout(timer)
     }
-  }, [ad, client, disabled, element, threshold, viewabilityDurationMs])
+  }, [adId, client, disabled, element, threshold, viewabilityDurationMs])
 
   const trackClick = useCallback(() => {
-    if (disabled || !ad) return
-    client.recordClick(ad.id).catch(() => {})
-  }, [ad, client, disabled])
+    if (disabled || !adId) return
+    client.recordClick(adId).catch(() => {})
+  }, [adId, client, disabled])
 
   const getClickProps = useCallback(
     <TElement extends HTMLElement>(

@@ -15,14 +15,33 @@ export interface RevinelFieldValue {
 }
 
 /**
- * `meta` is keyed by each field's stable machine slug. Pass your own interface
- * as `TMeta` (e.g. `getAd<{ bannerImage?: string }>()`) for typesafe access.
+ * Augmentation anchor for typing `ad.meta` globally — no per-call generic. Each
+ * key is a custom field's stable machine slug (shown in the Revinel dashboard):
+ *
+ * ```ts
+ * declare module "@revinel/sdk" {
+ *   interface RevinelMetaRegistry { tagline?: string; bannerImage?: string }
+ * }
+ * ```
+ *
+ * Left empty, `RevinelMeta` falls back to `Record<string, unknown>`.
  */
-export interface RevinelAd<TMeta = Record<string, unknown>> {
+// oxlint-disable-next-line no-empty-interface -- augmentation anchor; consumers extend it via `declare module`
+export interface RevinelMetaRegistry {}
+
+export type RevinelMeta = keyof RevinelMetaRegistry extends never
+  ? Record<string, unknown>
+  : RevinelMetaRegistry
+
+/**
+ * `meta` is keyed by each field's stable machine slug. Augment `RevinelMetaRegistry`
+ * (see above) to type it globally, or pass `TMeta` per call as a one-off override.
+ */
+export interface RevinelAd<TMeta = RevinelMeta> {
   id: string
   name: string
   websiteUrl: string
-  faviconUrl: string
+  faviconUrl: string | null
   weight: number
   meta: TMeta
   fields: RevinelFieldValue[]
@@ -221,19 +240,26 @@ export function createRevinelClient({
     return query ? `${path}?${query}` : path
   }
 
-  async function getAds<TMeta = Record<string, unknown>>({
+  async function getAds<TMeta = RevinelMeta>({
     request: placementRequest,
     ...options
   }: RevinelPlacementListOptions = {}): Promise<RevinelAd<TMeta>[]> {
-    const response = await fetchJson<{ ads: RevinelAd<TMeta>[] }>(
-      buildCurrentAdsPath(options),
-      placementRequest,
-    )
+    // Ads rotate per request — default to `no-store` so a framework cache (e.g.
+    // Next's default fetch caching) never freezes a single ad. The caller opts
+    // back into caching with `cache` or `next.revalidate`; Revinel still
+    // edge-caches the response for 5s on its side.
+    const merged = mergeRequestOptions(request, placementRequest)
+    const effective: RevinelRequestOptions =
+      merged.cache === undefined && merged.next?.revalidate === undefined
+        ? { ...merged, cache: "no-store" }
+        : merged
 
-    return response.ads
+    const response = await fetcher(`${baseUrl}${buildCurrentAdsPath(options)}`, effective)
+
+    return (await readJson<{ ads: RevinelAd<TMeta>[] }>(response)).ads
   }
 
-  async function getAd<TMeta = Record<string, unknown>>(
+  async function getAd<TMeta = RevinelMeta>(
     options: RevinelPlacementOptions = {},
   ): Promise<RevinelAd<TMeta> | null> {
     const ads = await getAds<TMeta>({ ...options, count: 1 })

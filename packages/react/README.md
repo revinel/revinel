@@ -14,6 +14,11 @@ npm install @revinel/react
 
 `react` (>=18) is a peer dependency.
 
+> **SSR note.** `useAd`/`useAds` fetch on the client — fine for client-only apps, but it
+> means a layout shift and no server-rendered ad. In an SSR framework (Next.js, Remix,
+> TanStack Start), fetch on the server with [`@revinel/sdk`](https://www.npmjs.com/package/@revinel/sdk)'s
+> `getAd` and render the markup yourself; use `useTracking` on the client for impressions/clicks.
+
 ## Render ads
 
 Wrap your app once, then read ads with the hooks:
@@ -23,7 +28,7 @@ import { RevinelProvider, useAd, useTracking } from "@revinel/react"
 
 const AdSlot = () => {
   const { data: ad } = useAd({ weightGte: 2.5 }) // premium placement
-  const { impressionRef, getClickProps } = useTracking(ad)
+  const { impressionRef, getClickProps } = useTracking(ad?.id)
 
   if (!ad) return null // no eligible ad — render nothing
 
@@ -41,17 +46,24 @@ export const Ads = () => (
 )
 ```
 
-`useTracking` records a viewable impression (via `IntersectionObserver`) and wires
-click tracking through `getClickProps()`. Use `useAds({ count })` for a grid.
+`useTracking` takes the ad id (or anything carrying one — the full ad, your own render
+shape), records a viewable impression (via `IntersectionObserver`), and wires click
+tracking through `getClickProps()`. Use `useAds({ count })` for a grid.
+
+Type `ad.meta` once via `@revinel/sdk`'s `RevinelMetaRegistry` (see its README) and every
+hook is typed with no per-call generic. If `impressionRef` can't sit on your ad element
+(e.g. a Slot/`asChild` wrapper that swallows refs), put it on a wrapping element or an
+absolutely-positioned sentinel inside the ad.
 
 ## Tier selector (acquire advertisers)
 
-Inline:
+`workspaceId` (and optional `appUrl`) are inherited from `RevinelProvider`, so inside one
+the widget takes no config props (`theme` defaults to `"auto"`):
 
 ```tsx
 import { TierSelector } from "@revinel/react"
 
-;<TierSelector workspaceId="your-workspace-id" theme="auto" onCheckout={e => {}} />
+;<TierSelector onCheckout={e => {}} />
 ```
 
 Or as a controlled modal:
@@ -60,8 +72,11 @@ Or as a controlled modal:
 import { TierSelectorDialog } from "@revinel/react"
 
 const [open, setOpen] = useState(false)
-;<TierSelectorDialog open={open} onClose={() => setOpen(false)} workspaceId="your-workspace-id" />
+;<TierSelectorDialog open={open} onClose={() => setOpen(false)} />
 ```
+
+Outside a provider, pass `workspaceId` (and `appUrl` for self-hosted) directly:
+`<TierSelector workspaceId="your-workspace-id" />`.
 
 Build your own pricing UI instead with `useTiers()` + `useCheckout()`:
 
@@ -76,7 +91,7 @@ const { redirectToCheckout, isPending } = useCheckout()
 
 ## Exports
 
-- **Provider:** `RevinelProvider`, `useRevinelClient`
+- **Provider:** `RevinelProvider`, `useRevinelClient`, `useRevinelConfig`
 - **Ads:** `useAd`, `useAds`, `useTracking`
 - **Tiers/checkout:** `useTiers`, `useCheckout`, `parseTierFeature`
 - **Widgets:** `TierSelector`, `TierSelectorDialog`
