@@ -93,6 +93,6 @@ Input-validation failures use HTTP **422** with `code: "INPUT_VALIDATION_FAILED"
 
 ## API reference
 
-Full reference and guides: **[docs.revinel.com](https://docs.revinel.com)**. The OpenAPI
+Full reference and guides: **[revinel.com/docs](https://revinel.com/docs)**. The OpenAPI
 spec is served at `/v1/openapi.json` on the Revinel API. For React bindings see
 [`@revinel/react`](https://www.npmjs.com/package/@revinel/react).

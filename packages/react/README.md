@@ -101,5 +101,5 @@ so you can type wrappers around them.
 
 ## API reference
 
-Full reference and guides: **[docs.revinel.com](https://docs.revinel.com)**. The OpenAPI
+Full reference and guides: **[revinel.com/docs](https://revinel.com/docs)**. The OpenAPI
 spec is served at `/v1/openapi.json` on the Revinel API.
