@@ -152,6 +152,14 @@ export function useTracking(
           trackClick()
           props.onClick?.(event)
         },
+        // Middle-click / open-in-new-tab fire `auxclick`, not `click`, so wire
+        // it too — filtered to the middle button (right-click opens the context
+        // menu, not an ad click). The keepalive recording survives the
+        // resulting navigation.
+        onAuxClick: (event: MouseEvent<TElement>) => {
+          if (event.button === 1) trackClick()
+          props.onAuxClick?.(event)
+        },
       }
     },
     [trackClick],
