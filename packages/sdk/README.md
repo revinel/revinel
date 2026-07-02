@@ -78,13 +78,21 @@ human label. For a one-off shape (e.g. a multi-workspace app) you can still pass
 
 ### Next.js / caching
 
-Ad fetches default to `cache: "no-store"` so the weighted rotation stays fresh per request
-(Revinel serves the response with `Cache-Control: max-age=5, s-maxage=15, stale-while-revalidate=60`,
-so its own edge/CDN still absorbs bursts). Opt into caching when you want it:
+Ad fetches default to `next: { revalidate: 60 }`, so Next.js App Router pages that call
+`getAd`/`getAds` stay statically renderable while the ad still refreshes every minute
+(an explicit `no-store` would force the route dynamic and 500 statically-generated pages
+at runtime). Revinel's API edge-caches responses for ~5s anyway, so per-request rotation
+was always approximate. Non-Next runtimes ignore the `next` key: server fetches
+(Node/edge) stay uncached, while browsers honor the response `Cache-Control`
+(`max-age=5`) and may reuse an identical request for up to ~5s — the same window the
+API's edge cache already imposes. Opt out for true per-request rotation (on an
+already-dynamic Next page, or anywhere else):
 
 ```ts
-const ad = await revinel.getAd({ request: { next: { revalidate: 60 } } })
+const ad = await revinel.getAd({ request: { cache: "no-store" } })
 ```
+
+Any explicit `cache` or `next.revalidate` replaces the default entirely.
 
 ## Timeouts
 

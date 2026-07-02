@@ -48,6 +48,46 @@ describe("createRevinelClient", () => {
     ])
   })
 
+  it("defaults ad requests to a 60s revalidate so static pages stay prerenderable", async () => {
+    const inits: RequestInit[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
+    const fetcher: typeof fetch = async (_url, options) => {
+      inits.push(options ?? {})
+      return Response.json({ ads: [sampleAd] })
+    }
+
+    const client = createRevinelClient({
+      workspaceId: "ws_openalternative",
+      apiUrl: "https://api.revinel.test",
+      fetch: fetcher,
+    })
+
+    await client.getAds()
+
+    expect(inits[0]).toMatchObject({ next: { revalidate: 60 } })
+    expect(inits[0]?.cache).toBeUndefined()
+  })
+
+  it("leaves an explicit cache: no-store untouched", async () => {
+    const inits: (RequestInit & { next?: unknown })[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
+    const fetcher: typeof fetch = async (_url, options) => {
+      inits.push(options ?? {})
+      return Response.json({ ads: [sampleAd] })
+    }
+
+    const client = createRevinelClient({
+      workspaceId: "ws_openalternative",
+      apiUrl: "https://api.revinel.test",
+      fetch: fetcher,
+    })
+
+    await client.getAds({ request: { cache: "no-store" } })
+
+    expect(inits[0]?.cache).toBe("no-store")
+    expect(inits[0]?.next).toBeUndefined()
+  })
+
   it("defaults requests to a timeout abort signal", async () => {
     const signals: (AbortSignal | null | undefined)[] = []
     // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`

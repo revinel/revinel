@@ -218,6 +218,21 @@ function withNoStoreDefault(options: RevinelRequestOptions): RevinelRequestOptio
     : options
 }
 
+// Default ad fetches to a 60s revalidate instead of `no-store`: an explicit
+// no-store marks a Next.js App Router route dynamic and 500s statically-
+// generated pages at runtime (DYNAMIC_SERVER_USAGE). 60s keeps rotation fresh
+// without freezing an ad forever AND stays cacheable so static pages can
+// prerender — the API edge-caches ~5s anyway, so per-request rotation was
+// always approximate. Non-Next runtimes ignore the `next` key; server fetches
+// (Node/edge) stay uncached, while browsers now honor the response
+// Cache-Control (max-age=5), the same ~5s reuse the API's edge cache already
+// imposes. Skipped when the caller sets `cache` or `next.revalidate`.
+function withRevalidateDefault(options: RevinelRequestOptions): RevinelRequestOptions {
+  return options.cache === undefined && options.next?.revalidate === undefined
+    ? { ...options, next: { ...options.next, revalidate: 60 } }
+    : options
+}
+
 async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => null)
@@ -278,11 +293,11 @@ export function createRevinelClient({
     request: placementRequest,
     ...options
   }: RevinelPlacementListOptions = {}): Promise<RevinelAd<TMeta>[]> {
-    // Ads rotate per request — serve fresh by default so a framework cache
-    // never freezes a single ad; Revinel still lets its own edge/CDN absorb
-    // bursts via the response Cache-Control (max-age=5, s-maxage=15).
+    // Ads rotate, but a 60s revalidate is fresh enough (the API edge-caches
+    // ~5s anyway) and keeps the fetch cacheable so Next static pages can
+    // prerender — see withRevalidateDefault.
     const effective = withTimeoutDefault(
-      withNoStoreDefault(mergeRequestOptions(request, placementRequest)),
+      withRevalidateDefault(mergeRequestOptions(request, placementRequest)),
     )
 
     const response = await fetcher(`${baseUrl}${buildCurrentAdsPath(options)}`, effective)
