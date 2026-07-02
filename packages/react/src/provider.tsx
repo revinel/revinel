@@ -54,16 +54,17 @@ export function RevinelProvider({
   appUrl,
   fetch,
   request,
+  timeoutMs,
 }: RevinelProviderProps) {
   const requestKey = JSON.stringify(request)
 
   const value = useMemo<RevinelContextValue>(() => {
     return {
-      client: createRevinelClient({ workspaceId, apiUrl, fetch, request }),
+      client: createRevinelClient({ workspaceId, apiUrl, fetch, request, timeoutMs }),
       workspaceId,
       appUrl,
     }
-  }, [apiUrl, appUrl, fetch, requestKey, workspaceId])
+  }, [apiUrl, appUrl, fetch, requestKey, timeoutMs, workspaceId])
 
   return <RevinelContext.Provider value={value}>{children}</RevinelContext.Provider>
 }

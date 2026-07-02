@@ -43,9 +43,57 @@ describe("createRevinelClient", () => {
     expect(calls).toEqual([
       {
         url: "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weightGte=2.5&excludeIds=ad_old&count=1",
-        options: { cache: "no-store", headers: {} },
+        options: { cache: "no-store", headers: {}, signal: expect.any(AbortSignal) },
       },
     ])
+  })
+
+  it("defaults requests to a timeout abort signal", async () => {
+    const signals: (AbortSignal | null | undefined)[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
+    const fetcher: typeof fetch = async (_url, options) => {
+      signals.push(options?.signal)
+      return Response.json({ ads: [] })
+    }
+
+    const client = createRevinelClient({
+      workspaceId: "ws_openalternative",
+      apiUrl: "https://api.revinel.test",
+      fetch: fetcher,
+    })
+
+    await client.getAds()
+
+    expect(signals[0]).toBeInstanceOf(AbortSignal)
+    expect(signals[0]?.aborted).toBe(false)
+  })
+
+  it("lets callers disable or override the default timeout", async () => {
+    const signals: (AbortSignal | null | undefined)[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
+    const fetcher: typeof fetch = async (_url, options) => {
+      signals.push(options?.signal)
+      return Response.json({ ads: [] })
+    }
+
+    const disabled = createRevinelClient({
+      workspaceId: "ws_openalternative",
+      apiUrl: "https://api.revinel.test",
+      fetch: fetcher,
+      timeoutMs: false,
+    })
+    await disabled.getAds()
+
+    const controller = new AbortController()
+    const overridden = createRevinelClient({
+      workspaceId: "ws_openalternative",
+      apiUrl: "https://api.revinel.test",
+      fetch: fetcher,
+    })
+    await overridden.getAds({ request: { signal: controller.signal } })
+
+    expect(signals[0]).toBeUndefined()
+    expect(signals[1]).toBe(controller.signal)
   })
 
   it("fetches multiple ads for sponsor grids", async () => {

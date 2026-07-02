@@ -1,4 +1,5 @@
 const DEFAULT_API_URL = "https://api.revinel.com"
+const DEFAULT_TIMEOUT_MS = 10_000
 
 // Mirrors the Prisma `FieldType` enum (packages/db/prisma/models/field.prisma).
 // Kept as a standalone literal union because the SDK is published with zero
@@ -139,6 +140,13 @@ export interface RevinelClientOptions {
   apiUrl?: string
   fetch?: typeof fetch
   request?: RevinelRequestOptions
+  /**
+   * Milliseconds before a request aborts (via `AbortSignal.timeout`), so a
+   * hung connection can never stall a caller forever. Pass `false` to disable.
+   * Ignored for a request that carries its own `signal`.
+   * @default 10000
+   */
+  timeoutMs?: number | false
 }
 
 export interface RevinelPlacementOptions {
@@ -224,12 +232,29 @@ export function createRevinelClient({
   apiUrl = DEFAULT_API_URL,
   fetch: customFetch,
   request,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
 }: RevinelClientOptions) {
   const baseUrl = trimTrailingSlash(apiUrl)
   const fetcher = getFetch(customFetch)
 
+  // Default every request to an abort-on-timeout signal so a black-holed
+  // connection rejects instead of hanging forever. Skipped when the caller
+  // provides a `signal` (incl. an explicit `null`), when timeouts are disabled
+  // via `timeoutMs: false`, or on runtimes without `AbortSignal.timeout`.
+  function withTimeoutDefault(options: RevinelRequestOptions): RevinelRequestOptions {
+    if (timeoutMs === false || options.signal !== undefined) return options
+    if (typeof AbortSignal === "undefined" || typeof AbortSignal.timeout !== "function") {
+      return options
+    }
+
+    return { ...options, signal: AbortSignal.timeout(timeoutMs) }
+  }
+
   async function fetchJson<T>(path: string, options?: RevinelRequestOptions): Promise<T> {
-    const response = await fetcher(`${baseUrl}${path}`, mergeRequestOptions(request, options))
+    const response = await fetcher(
+      `${baseUrl}${path}`,
+      withTimeoutDefault(mergeRequestOptions(request, options)),
+    )
 
     return await readJson<T>(response)
   }
@@ -256,7 +281,9 @@ export function createRevinelClient({
     // Ads rotate per request — serve fresh by default so a framework cache
     // never freezes a single ad; Revinel still edge-caches the response for 5s
     // on its side.
-    const effective = withNoStoreDefault(mergeRequestOptions(request, placementRequest))
+    const effective = withTimeoutDefault(
+      withNoStoreDefault(mergeRequestOptions(request, placementRequest)),
+    )
 
     const response = await fetcher(`${baseUrl}${buildCurrentAdsPath(options)}`, effective)
 
@@ -285,7 +312,7 @@ export function createRevinelClient({
   async function getTiers(options: RevinelRequestOptions = {}): Promise<RevinelTier[]> {
     // Prices change (archive + create new) — serve fresh by default so a stale
     // tier list never sends a checkout to an archived `tierPriceId`.
-    const effective = withNoStoreDefault(mergeRequestOptions(request, options))
+    const effective = withTimeoutDefault(withNoStoreDefault(mergeRequestOptions(request, options)))
 
     const response = await fetcher(
       `${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/tiers`,

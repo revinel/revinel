@@ -79,6 +79,16 @@ Ad fetches default to `cache: "no-store"` so the weighted rotation stays fresh p
 const ad = await revinel.getAd({ request: { next: { revalidate: 60 } } })
 ```
 
+## Timeouts
+
+Requests abort after **10 seconds** by default (via `AbortSignal.timeout`), rejecting
+with a `TimeoutError` `DOMException` so a hung connection never stalls your renderer.
+Tune or disable it per client:
+
+```ts
+const revinel = createRevinelClient({ workspaceId: "…", timeoutMs: 5_000 }) // `false` disables
+```
+
 ## Errors
 
 Non-2xx responses throw `RevinelApiError` (`{ status, body }`). The `body` is the
