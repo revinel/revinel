@@ -36,6 +36,12 @@ if (ad) {
 `getAd` resolves to `RevinelAd | null`; `getAds` to `RevinelAd[]` (empty when nothing
 is eligible — the SDK never throws on "no ads"). `ad.faviconUrl` is `string | null`.
 
+> **Multiple slots on one page? Use a single `getAds({ count: n })`, not `n × getAd()`.**
+> Every `getAd()` sends the same request, so the shared edge cache hands back the *same*
+> ad to each call — you'd render duplicates and record duplicate impressions. One
+> `getAds({ count })` returns `n` distinct ads in one round trip; pass `excludeIds` when
+> you fetch further ads separately to keep dedupe across calls.
+
 > **Fetch on the server.** Ad fetching belongs in your server/edge code (RSC, loader,
 > route handler) so the ad is server-rendered — no layout shift, no client waterfall.
 > Reach for [`@revinel/react`](https://www.npmjs.com/package/@revinel/react)'s `useAd`
@@ -73,7 +79,8 @@ human label. For a one-off shape (e.g. a multi-workspace app) you can still pass
 ### Next.js / caching
 
 Ad fetches default to `cache: "no-store"` so the weighted rotation stays fresh per request
-(Revinel edge-caches the response for 5s on its side). Opt into caching when you want it:
+(Revinel serves the response with `Cache-Control: max-age=5, s-maxage=15, stale-while-revalidate=60`,
+so its own edge/CDN still absorbs bursts). Opt into caching when you want it:
 
 ```ts
 const ad = await revinel.getAd({ request: { next: { revalidate: 60 } } })

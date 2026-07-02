@@ -279,8 +279,8 @@ export function createRevinelClient({
     ...options
   }: RevinelPlacementListOptions = {}): Promise<RevinelAd<TMeta>[]> {
     // Ads rotate per request — serve fresh by default so a framework cache
-    // never freezes a single ad; Revinel still edge-caches the response for 5s
-    // on its side.
+    // never freezes a single ad; Revinel still lets its own edge/CDN absorb
+    // bursts via the response Cache-Control (max-age=5, s-maxage=15).
     const effective = withTimeoutDefault(
       withNoStoreDefault(mergeRequestOptions(request, placementRequest)),
     )

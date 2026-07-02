@@ -48,7 +48,12 @@ export const Ads = () => (
 
 `useTracking` takes the ad id (or anything carrying one — the full ad, your own render
 shape), records a viewable impression (via `IntersectionObserver`), and wires click
-tracking through `getClickProps()`. Use `useAds({ count })` for a grid.
+tracking through `getClickProps()` (which also tracks middle-click / open-in-new-tab).
+
+> **Rendering multiple slots? Use one `useAds({ count: n })`, not `n × useAd()`.** Each
+> `useAd()` sends the same request, so the shared edge cache returns the *same* ad every
+> time — you'd render duplicates and double-count impressions. `useAds({ count })` returns
+> `n` distinct ads in one call; pass `excludeIds` to dedupe against ads fetched elsewhere.
 
 Type `ad.meta` once via `@revinel/sdk`'s `RevinelMetaRegistry` (see its README) and every
 hook is typed with no per-call generic. If `impressionRef` can't sit on your ad element
