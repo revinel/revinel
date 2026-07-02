@@ -201,6 +201,15 @@ function mergeRequestOptions(
   }
 }
 
+// Default the fetch to `no-store` so a framework cache (e.g. Next's default
+// fetch caching) never freezes the response. The caller opts back into caching
+// with `cache` or `next.revalidate`.
+function withNoStoreDefault(options: RevinelRequestOptions): RevinelRequestOptions {
+  return options.cache === undefined && options.next?.revalidate === undefined
+    ? { ...options, cache: "no-store" }
+    : options
+}
+
 async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => null)
@@ -244,15 +253,10 @@ export function createRevinelClient({
     request: placementRequest,
     ...options
   }: RevinelPlacementListOptions = {}): Promise<RevinelAd<TMeta>[]> {
-    // Ads rotate per request — default to `no-store` so a framework cache (e.g.
-    // Next's default fetch caching) never freezes a single ad. The caller opts
-    // back into caching with `cache` or `next.revalidate`; Revinel still
-    // edge-caches the response for 5s on its side.
-    const merged = mergeRequestOptions(request, placementRequest)
-    const effective: RevinelRequestOptions =
-      merged.cache === undefined && merged.next?.revalidate === undefined
-        ? { ...merged, cache: "no-store" }
-        : merged
+    // Ads rotate per request — serve fresh by default so a framework cache
+    // never freezes a single ad; Revinel still edge-caches the response for 5s
+    // on its side.
+    const effective = withNoStoreDefault(mergeRequestOptions(request, placementRequest))
 
     const response = await fetcher(`${baseUrl}${buildCurrentAdsPath(options)}`, effective)
 
@@ -279,12 +283,16 @@ export function createRevinelClient({
   const recordClick = recordEvent("click")
 
   async function getTiers(options: RevinelRequestOptions = {}): Promise<RevinelTier[]> {
-    const response = await fetchJson<{ tiers: RevinelTier[] }>(
-      `/v1/workspaces/${encodeURIComponent(workspaceId)}/tiers`,
-      options,
+    // Prices change (archive + create new) — serve fresh by default so a stale
+    // tier list never sends a checkout to an archived `tierPriceId`.
+    const effective = withNoStoreDefault(mergeRequestOptions(request, options))
+
+    const response = await fetcher(
+      `${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/tiers`,
+      effective,
     )
 
-    return response.tiers
+    return (await readJson<{ tiers: RevinelTier[] }>(response)).tiers
   }
 
   function createCheckout(
