@@ -118,8 +118,14 @@ declare global {
 
   for (const item of queue) {
     const method = api[item.method]
-    if (typeof method === "function") {
+    if (typeof method !== "function") continue
+
+    // Isolate each replay so one malformed queued call (e.g. an `init` missing
+    // `workspaceId`) can't abort the remaining queued calls.
+    try {
       ;(method as (...args: unknown[]) => unknown)(...item.args)
+    } catch (error) {
+      console.error("Revinel: failed to replay queued call.", error)
     }
   }
 })(window)

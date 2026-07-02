@@ -326,12 +326,19 @@ export function createRevinelClient({
     { tierPriceId, email, cancelUrl }: RevinelCheckoutOptions,
     options: RevinelRequestOptions = {},
   ): Promise<RevinelCheckoutSession> {
-    return fetchJson<RevinelCheckoutSession>("/v1/checkout", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ tierPriceId, email, cancelUrl }),
-      ...options,
-    })
+    return fetchJson<RevinelCheckoutSession>(
+      "/v1/checkout",
+      // Merge caller options so their `headers` extend (not replace) the JSON
+      // content-type; explicit `method`/`body` still win over any caller value.
+      mergeRequestOptions(
+        { headers: { "content-type": "application/json" } },
+        {
+          ...options,
+          method: "POST",
+          body: JSON.stringify({ tierPriceId, email, cancelUrl }),
+        },
+      ),
+    )
   }
 
   return {

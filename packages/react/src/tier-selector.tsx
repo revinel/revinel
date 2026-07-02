@@ -68,20 +68,17 @@ function EmbedIframe({
   handlersRef.current = { onReady, onCheckout, onError, onRequestClose }
 
   const resolvedWorkspaceId = workspaceId ?? config.workspaceId
-  if (!resolvedWorkspaceId) {
-    throw new Error(
-      "TierSelector requires a workspaceId — pass it as a prop or wrap in <RevinelProvider workspaceId>.",
-    )
-  }
-
-  const src = buildEmbedUrl({
-    appUrl: appUrl ?? config.appUrl ?? DEFAULT_EMBED_APP_URL,
-    workspaceId: resolvedWorkspaceId,
-    theme,
-    chrome,
-  })
+  const src = resolvedWorkspaceId
+    ? buildEmbedUrl({
+        appUrl: appUrl ?? config.appUrl ?? DEFAULT_EMBED_APP_URL,
+        workspaceId: resolvedWorkspaceId,
+        theme,
+        chrome,
+      })
+    : null
 
   useEffect(() => {
+    if (!src) return
     function onMessage(event: MessageEvent) {
       if (!isEmbedMessage(event, ref.current)) return
 
@@ -97,6 +94,10 @@ function EmbedIframe({
     window.addEventListener("message", onMessage)
     return () => window.removeEventListener("message", onMessage)
   }, [src])
+
+  // Render nothing (rather than throw) when no workspaceId resolves, so an
+  // error boundary re-render can't change this component's hook count.
+  if (!src) return null
 
   return (
     <iframe
