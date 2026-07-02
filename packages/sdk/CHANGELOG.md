@@ -1,5 +1,25 @@
 # @revinel/sdk
 
+## 0.3.0
+
+### Minor Changes
+
+- [#219](https://github.com/revinel/platform/pull/219) [`05cb02f`](https://github.com/revinel/platform/commit/05cb02fdb4601a7e4a6ffe36c68238dd6e0b4182) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Default ad requests (`getAd`/`getAds`) to `next: { revalidate: 60 }` instead of `cache: "no-store"`. An explicit no-store fetch marks Next.js App Router routes dynamic and 500s statically-generated pages at runtime (`DYNAMIC_SERVER_USAGE`); a 60s revalidate keeps rotation fresh without freezing an ad forever and stays cacheable so static pages can prerender (the API edge-caches ~5s anyway, so per-request rotation was always approximate). Non-Next runtimes ignore the `next` key; server fetches (Node/edge) stay uncached, while browsers now honor the response `Cache-Control` (`max-age=5`), the same ~5s reuse the API's edge cache already imposes. Any caller-set `cache` or `next.revalidate` still replaces the default — pass `request: { cache: "no-store" }` for true per-request rotation on dynamic pages. `getTiers` keeps its `no-store` default so a stale tier list never sends a checkout to an archived price.
+
+### Patch Changes
+
+- [#170](https://github.com/revinel/platform/pull/170) [`e2cd94b`](https://github.com/revinel/platform/commit/e2cd94b4f498b899f861a05ff1a920900c95a76e) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Default `getTiers` to `cache: "no-store"` (matching `getAd`/`getAds`) unless the caller sets `cache` or `next.revalidate`, so framework fetch caches (e.g. Next.js App Router) never freeze the tier list and send checkouts to an archived `tierPriceId`.
+
+- [#183](https://github.com/revinel/platform/pull/183) [`b2f590c`](https://github.com/revinel/platform/commit/b2f590c27c58c1a9e1b5e777d86863bcbcb4ee79) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Abort SDK requests after 10 seconds by default (via `AbortSignal.timeout`), so a hung connection rejects instead of leaving callers — e.g. `useAd`'s `isLoading` — stuck forever. Override or disable with the new `timeoutMs` client option (`number | false`, forwarded by `RevinelProvider`); a request that carries its own `signal` is left untouched.
+
+- [#211](https://github.com/revinel/platform/pull/211) [`14a15db`](https://github.com/revinel/platform/commit/14a15dba58cb56459abf8e38aab25b3fa1125171) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Docs: warn against `n × getAd()` / `n × useAd()` for multi-slot pages (use one `getAds`/`useAds({ count })` to avoid rendering the same cached ad and double-counting impressions), correct the ad-serving cache note to the actual `Cache-Control` (`max-age=5, s-maxage=15, stale-while-revalidate=60`), and note that `getClickProps` also tracks middle-click / open-in-new-tab. README-only.
+
+- [#202](https://github.com/revinel/platform/pull/202) [`2981a8e`](https://github.com/revinel/platform/commit/2981a8ef2543ecac6369aa7ee1f106b11109ba03) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Robustness fixes across the public SDK surface:
+
+  - `@revinel/browser`: the `embed.js` queue replay now wraps each queued call in try/catch (logging via `console.error`), so one malformed queued `init` no longer aborts the remaining queued calls.
+  - `@revinel/react`: `<TierSelector>` renders `null` instead of throwing when no `workspaceId` resolves, and the missing-id guard no longer sits between hooks — an error-boundary re-render can't change the component's hook count.
+  - `@revinel/sdk`: `createCheckout` now merges caller-passed `options.headers` with the JSON `content-type` header instead of letting the options spread clobber it.
+
 ## 0.2.0
 
 ### Minor Changes

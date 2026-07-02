@@ -1,6 +1,6 @@
 {
   "name": "@revinel/embeds",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": false,
   "description": "Shared Revinel embed protocol — the postMessage contract between the embed iframe and its host wrappers.",
   "keywords": [
