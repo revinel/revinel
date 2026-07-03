@@ -1,6 +1,6 @@
 # @revinel/browser
 
-Browser runtime for embedding the [Revinel](https://revinel.com) **tier selector** — the
+Browser runtime for embedding the [Revinel](https://revinel.com) **tier selector**, the
 "Subscribe to advertise" widget that lets your visitors pick an advertising plan and pay
 through Stripe. Renders as an auto-resizing iframe; inline or as a modal.
 
@@ -43,7 +43,7 @@ document.querySelector("#advertise-btn").addEventListener("click", () => {
 
 ## No-code script (hosted)
 
-No bundler needed — drop in the hosted script and mark any element to open the popup:
+No bundler needed. Drop in the hosted script and mark any element to open the popup:
 
 ```html
 <button data-revinel-tier-selector data-revinel-workspace-id="your-workspace-id">
@@ -61,23 +61,23 @@ real workspace ID from the **Embed** page in the Revinel dashboard.
 | Option | Type | Notes |
 | --- | --- | --- |
 | `workspaceId` | `string` | Required. |
-| `container` | `string \| Element` | `mountTierSelector` only — where to mount the iframe. |
+| `container` | `string \| Element` | `mountTierSelector` only. Where to mount the iframe. |
 | `theme` | `"auto" \| "light" \| "dark"` | Defaults to `"auto"` (matches the host page). |
 | `appUrl` | `string` | Origin serving `/embed`. Defaults to the hosted Revinel app. |
 | `height` | `number \| string` | Initial height before the embed reports its own. |
-| `title` | `string` | `openTierSelector` only — the modal's accessible label. |
+| `title` | `string` | `openTierSelector` only. The modal's accessible label. |
 
 ## Events
 
 Pass `onReady`, `onCheckout`, `onError` (and `onClose` for the popup):
 
-- `onReady()` — the selector has loaded and rendered.
-- `onCheckout({ tierPriceId })` — fires when the visitor starts checkout, **just before** the
+- `onReady()`: the selector has loaded and rendered.
+- `onCheckout({ tierPriceId })`: fires when the visitor starts checkout, **just before** the
   redirect to Stripe.
-- `onError({ message })` — tiers failed to load, or checkout creation failed.
+- `onError({ message })`: tiers failed to load, or checkout creation failed.
 
 There is no "completed" event: checkout redirects the top window to Stripe, so the embed is
-gone by the time payment finishes — subscription state is delivered to your account by webhook.
+gone by the time payment finishes. Subscription state is delivered to your account by webhook.
 
 ## API reference
 

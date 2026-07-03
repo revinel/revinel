@@ -3,8 +3,8 @@
 React bindings for [Revinel](https://revinel.com) publisher integrations. Covers both
 integration jobs:
 
-1. **Render ads** on your site — `RevinelProvider` + hooks, on top of [`@revinel/sdk`](https://www.npmjs.com/package/@revinel/sdk).
-2. **Acquire advertisers** — the `<TierSelector>` / `<TierSelectorDialog>` "Subscribe to advertise" widget.
+1. **Render ads** on your site: `RevinelProvider` + hooks, on top of [`@revinel/sdk`](https://www.npmjs.com/package/@revinel/sdk).
+2. **Acquire advertisers**: the `<TierSelector>` / `<TierSelectorDialog>` "Subscribe to advertise" widget.
 
 ## Install
 
@@ -14,7 +14,7 @@ npm install @revinel/react
 
 `react` (>=18) is a peer dependency.
 
-> **SSR note.** `useAd`/`useAds` fetch on the client — fine for client-only apps, but it
+> **SSR note.** `useAd`/`useAds` fetch on the client. That's fine for client-only apps, but it
 > means a layout shift and no server-rendered ad. In an SSR framework (Next.js, Remix,
 > TanStack Start), fetch on the server with [`@revinel/sdk`](https://www.npmjs.com/package/@revinel/sdk)'s
 > `getAd` and render the markup yourself; use `useTracking` on the client for impressions/clicks.
@@ -30,7 +30,7 @@ const AdSlot = () => {
   const { data: ad } = useAd({ weightGte: 2.5 }) // premium placement
   const { impressionRef, getClickProps } = useTracking(ad?.id)
 
-  if (!ad) return null // no eligible ad — render nothing
+  if (!ad) return null // no eligible ad, render nothing
 
   return (
     <a ref={impressionRef} href={ad.websiteUrl} {...getClickProps()}>
@@ -46,13 +46,13 @@ export const Ads = () => (
 )
 ```
 
-`useTracking` takes the ad id (or anything carrying one — the full ad, your own render
+`useTracking` takes the ad id (or anything carrying one, like the full ad or your own render
 shape), records a viewable impression (via `IntersectionObserver`), and wires click
 tracking through `getClickProps()` (which also tracks middle-click / open-in-new-tab).
 
 > **Rendering multiple slots? Use one `useAds({ count: n })`, not `n × useAd()`.** Each
 > `useAd()` sends the same request, so the shared edge cache returns the *same* ad every
-> time — you'd render duplicates and double-count impressions. `useAds({ count })` returns
+> time, so you'd render duplicates and double-count impressions. `useAds({ count })` returns
 > `n` distinct ads in one call; pass `excludeIds` to dedupe against ads fetched elsewhere.
 
 Type `ad.meta` once via `@revinel/sdk`'s `RevinelMetaRegistry` (see its README) and every

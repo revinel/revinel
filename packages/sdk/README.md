@@ -16,7 +16,7 @@ import { createRevinelClient } from "@revinel/sdk"
 
 const revinel = createRevinelClient({
   workspaceId: "your-workspace-id",
-  // apiUrl is optional — it defaults to the Revinel production API. Only set it
+  // apiUrl is optional; it defaults to the Revinel production API. Only set it
   // to point at a local/staging API in development.
 })
 
@@ -34,25 +34,25 @@ if (ad) {
 ```
 
 `getAd` resolves to `RevinelAd | null`; `getAds` to `RevinelAd[]` (empty when nothing
-is eligible — the SDK never throws on "no ads"). `ad.faviconUrl` is `string | null`.
+is eligible; the SDK never throws on "no ads"). `ad.faviconUrl` is `string | null`.
 
 > **Multiple slots on one page? Use a single `getAds({ count: n })`, not `n × getAd()`.**
 > Every `getAd()` sends the same request, so the shared edge cache hands back the *same*
-> ad to each call — you'd render duplicates and record duplicate impressions. One
+> ad to each call, so you'd render duplicates and record duplicate impressions. One
 > `getAds({ count })` returns `n` distinct ads in one round trip; pass `excludeIds` when
 > you fetch further ads separately to keep dedupe across calls.
 
 > **Fetch on the server.** Ad fetching belongs in your server/edge code (RSC, loader,
-> route handler) so the ad is server-rendered — no layout shift, no client waterfall.
+> route handler) so the ad is server-rendered, with no layout shift and no client waterfall.
 > Reach for [`@revinel/react`](https://www.npmjs.com/package/@revinel/react)'s `useAd`
 > only in client-only apps.
 
 ### Typed creative (`meta`)
 
 `ad.meta` is keyed by each custom field's **stable machine slug** (set when the publisher
-creates the field, e.g. `bannerImage` for a "Banner image" field — visible in the Revinel
-dashboard). Register your creative shape **once** and every call is typed — no per-call
-generic, no cast:
+creates the field, e.g. `bannerImage` for a "Banner image" field, visible in the Revinel
+dashboard). Register your creative shape **once** and every call is typed, with no per-call
+generic and no cast:
 
 ```ts
 // revinel.d.ts (or anywhere in your app)
@@ -68,7 +68,7 @@ declare module "@revinel/sdk" {
 
 ```ts
 const ad = await revinel.getAd({ weightGte: 2.5 })
-ad?.meta.bannerImage // string | undefined — fully typed
+ad?.meta.bannerImage // string | undefined, fully typed
 ```
 
 The slug is immutable, so renaming a field's display label never breaks your code. Each
@@ -84,7 +84,7 @@ Ad fetches default to `next: { revalidate: 60 }`, so Next.js App Router pages th
 at runtime). Revinel's API edge-caches responses for ~5s anyway, so per-request rotation
 was always approximate. Non-Next runtimes ignore the `next` key: server fetches
 (Node/edge) stay uncached, while browsers honor the response `Cache-Control`
-(`max-age=5`) and may reuse an identical request for up to ~5s — the same window the
+(`max-age=5`) and may reuse an identical request for up to ~5s, the same window the
 API's edge cache already imposes. Opt out for true per-request rotation (on an
 already-dynamic Next page, or anywhere else):
 
