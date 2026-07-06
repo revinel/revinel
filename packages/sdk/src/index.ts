@@ -5,7 +5,19 @@ const DEFAULT_TIMEOUT_MS = 10_000
 // Kept as a standalone literal union because the SDK is published with zero
 // deps and cannot import `@revinel/db`; the server tightens its `/v1` schema to
 // the same enum, so any drift surfaces in `/v1/openapi.json`.
-export type RevinelFieldType = "Text" | "Textarea" | "Url" | "Number" | "Switch" | "Image"
+export type RevinelFieldType = "Text" | "Textarea" | "Url" | "Number" | "Switch" | "Image" | "Color"
+
+/**
+ * A `Color` field's served value: the picked color as ready-to-use CSS strings.
+ * No alpha is stored — add opacity on your side with `color-mix()` or relative
+ * color syntax, e.g. `oklch(from <value.oklch> l c h / 0.8)`.
+ */
+export interface RevinelColorValue {
+  hex: string
+  rgb: string
+  hsl: string
+  oklch: string
+}
 
 export interface RevinelFieldValue {
   id: string
@@ -21,7 +33,12 @@ export interface RevinelFieldValue {
  *
  * ```ts
  * declare module "@revinel/sdk" {
- *   interface RevinelMetaRegistry { tagline?: string; bannerImage?: string }
+ *   interface RevinelMetaRegistry {
+ *     tagline?: string
+ *     bannerImage?: string
+ *     // A `Color` field's value is a `RevinelColorValue` object, not a string.
+ *     brandColor?: RevinelColorValue
+ *   }
  * }
  * ```
  *
