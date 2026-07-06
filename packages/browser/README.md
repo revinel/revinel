@@ -20,7 +20,7 @@ import { mountTierSelector } from "@revinel/browser"
 
 const widget = mountTierSelector({
   workspaceId: "your-workspace-id",
-  container: "#advertise", // a CSS selector or an Element
+  container: "#revinel-tiers", // a CSS selector or an Element
   theme: "auto", // "auto" | "light" | "dark"
   onCheckout: ({ tierPriceId }) => console.log("checkout started", tierPriceId),
 })
@@ -36,7 +36,7 @@ Opens the selector in a native `<dialog>` (focus-trap, Esc, and backdrop handled
 ```ts
 import { openTierSelector } from "@revinel/browser"
 
-document.querySelector("#advertise-btn").addEventListener("click", () => {
+document.querySelector("#revinel-tiers-btn").addEventListener("click", () => {
   openTierSelector({ workspaceId: "your-workspace-id", onClose: () => {} })
 })
 ```
