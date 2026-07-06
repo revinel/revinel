@@ -36,21 +36,4 @@ export type {
   RevinelEmbedTheme,
 } from "@revinel/embeds"
 
-export type {
-  RevinelAd,
-  RevinelBillingInterval,
-  RevinelCheckoutOptions,
-  RevinelCheckoutSession,
-  RevinelClient,
-  RevinelFieldType,
-  RevinelFieldValue,
-  RevinelMeta,
-  RevinelMetaRegistry,
-  RevinelPlacementListOptions,
-  RevinelPlacementOptions,
-  RevinelRequestOptions,
-  RevinelSerializableRequestOptions,
-  RevinelTier,
-  RevinelTierFeature,
-  RevinelTierPrice,
-} from "@revinel/sdk"
+export type * from "@revinel/sdk"
