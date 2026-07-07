@@ -71,9 +71,8 @@ const ad = await revinel.getAd({ weightGte: 2.5 })
 ad?.meta.bannerImage // string | undefined, fully typed
 ```
 
-The slug is immutable, so renaming a field's display label never breaks your code. Each
-entry is also available in `ad.fields` as `{ key, name, type, value }` if you need the
-human label. For a one-off shape (e.g. a multi-workspace app) you can still pass a generic:
+The slug is immutable, so renaming a field's display label never breaks your code. For a
+one-off shape (e.g. a multi-workspace app) you can still pass a generic:
 `revinel.getAd<{ bannerImage?: string }>()`.
 
 ### Next.js / caching

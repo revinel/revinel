@@ -1,12 +1,6 @@
 const DEFAULT_API_URL = "https://api.revinel.com"
 const DEFAULT_TIMEOUT_MS = 10_000
 
-// Mirrors the Prisma `FieldType` enum (packages/db/prisma/models/field.prisma).
-// Kept as a standalone literal union because the SDK is published with zero
-// deps and cannot import `@revinel/db`; the server tightens its `/v1` schema to
-// the same enum, so any drift surfaces in `/v1/openapi.json`.
-export type RevinelFieldType = "Text" | "Textarea" | "Url" | "Number" | "Switch" | "Image" | "Color"
-
 /**
  * A `Color` field's served value: the picked color as ready-to-use CSS strings.
  * No alpha is stored — add opacity on your side with `color-mix()` or relative
@@ -17,14 +11,6 @@ export interface RevinelColorValue {
   rgb: string
   hsl: string
   oklch: string
-}
-
-export interface RevinelFieldValue {
-  id: string
-  key: string
-  name: string
-  type: RevinelFieldType
-  value: unknown
 }
 
 /**
@@ -61,7 +47,6 @@ export interface RevinelAd<TMeta = RevinelMeta> {
   faviconUrl: string | null
   weight: number
   meta: TMeta
-  fields: RevinelFieldValue[]
 }
 
 export type RevinelBillingInterval = "Day" | "Week" | "Month" | "Year"
