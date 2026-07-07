@@ -158,6 +158,43 @@ describe("createRevinelClient", () => {
     )
   })
 
+  it("serves a fixed slot by tierId", async () => {
+    const calls: string[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
+    const fetcher: typeof fetch = async url => {
+      calls.push(String(url))
+      return Response.json({ ads: [sampleAd] })
+    }
+
+    const client = createRevinelClient({
+      workspaceId: "ws_openalternative",
+      apiUrl: "https://api.revinel.test",
+      fetch: fetcher,
+    })
+
+    await client.getAd({ tierId: "tier_hosting" })
+
+    expect(calls[0]).toBe(
+      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?tierId=tier_hosting&count=1",
+    )
+  })
+
+  it("classifies API errors as client vs server and surfaces the server message", () => {
+    const clientError = new RevinelApiError(422, {
+      code: "INPUT_VALIDATION_FAILED",
+      message: "Too big: expected number to be <=50",
+    })
+    expect(clientError.isClientError).toBe(true)
+    expect(clientError.isServerError).toBe(false)
+    expect(clientError.message).toContain("INPUT_VALIDATION_FAILED")
+    expect(clientError.message).toContain("Too big")
+
+    const serverError = new RevinelApiError(503, null)
+    expect(serverError.isServerError).toBe(true)
+    expect(serverError.isClientError).toBe(false)
+    expect(serverError.message).toBe("Revinel API request failed with status 503")
+  })
+
   it("records impressions and clicks", async () => {
     const calls: { url: string; method?: string }[] = []
     // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`

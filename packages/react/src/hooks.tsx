@@ -53,6 +53,7 @@ export interface RevinelTrackingResult {
 export function useAd<TMeta = RevinelMeta>({
   enabled = true,
   weightGte,
+  tierId,
   excludeIds,
   request,
 }: RevinelAdOptions = {}): RevinelQueryState<RevinelAd<TMeta> | null> {
@@ -63,8 +64,8 @@ export function useAd<TMeta = RevinelMeta>({
   const requestKey = JSON.stringify(request)
 
   const getData = useCallback(
-    () => client.getAd<TMeta>({ weightGte, excludeIds, request }),
-    [client, excludeKey, requestKey, weightGte],
+    () => client.getAd<TMeta>({ weightGte, tierId, excludeIds, request }),
+    [client, excludeKey, requestKey, weightGte, tierId],
   )
 
   return useRevinelQuery<RevinelAd<TMeta> | null>(enabled, null, getData)
@@ -73,6 +74,7 @@ export function useAd<TMeta = RevinelMeta>({
 export function useAds<TMeta = RevinelMeta>({
   enabled = true,
   weightGte,
+  tierId,
   excludeIds,
   count,
   request,
@@ -82,8 +84,8 @@ export function useAds<TMeta = RevinelMeta>({
   const requestKey = JSON.stringify(request)
 
   const getData = useCallback(
-    () => client.getAds<TMeta>({ weightGte, excludeIds, count, request }),
-    [client, count, excludeKey, requestKey, weightGte],
+    () => client.getAds<TMeta>({ weightGte, tierId, excludeIds, count, request }),
+    [client, count, excludeKey, requestKey, weightGte, tierId],
   )
 
   return useRevinelQuery<RevinelAd<TMeta>[]>(enabled, [], getData)

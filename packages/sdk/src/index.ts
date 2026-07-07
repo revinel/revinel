@@ -167,6 +167,11 @@ export interface RevinelClientOptions {
 
 export interface RevinelPlacementOptions {
   weightGte?: number
+  /**
+   * Serve only from this tier — a fixed slot backed by one tier (e.g. a
+   * dedicated "hosting" placement). The deterministic complement to `weightGte`.
+   */
+  tierId?: string
   excludeIds?: string[]
   request?: RevinelRequestOptions
 }
@@ -183,15 +188,49 @@ interface TrackResponse {
   success: boolean
 }
 
+/**
+ * Thrown when the API returns a non-2xx response. `isClientError` (4xx) means
+ * the request was malformed — a bug in the caller — and should fail loud; a
+ * publisher fail-safe should rethrow it rather than swallow it as an outage:
+ *
+ * ```ts
+ * try {
+ *   return await client.getAds({ weightGte: 2.5 })
+ * } catch (error) {
+ *   if (error instanceof RevinelApiError && error.isClientError) throw error
+ *   return [] // 5xx / network — Revinel is down, degrade gracefully
+ * }
+ * ```
+ */
 export class RevinelApiError extends Error {
   status: number
   body: unknown
 
   constructor(status: number, body: unknown) {
-    super(`Revinel API request failed with status ${status}`)
+    super(RevinelApiError.formatMessage(status, body))
     this.name = "RevinelApiError"
     this.status = status
     this.body = body
+  }
+
+  /** 4xx — the request was malformed (a caller bug); fail loud, don't fall back. */
+  get isClientError(): boolean {
+    return this.status >= 400 && this.status < 500
+  }
+
+  /** 5xx — Revinel is unavailable; safe to fall back to an empty/no-ad state. */
+  get isServerError(): boolean {
+    return this.status >= 500
+  }
+
+  // Surface the server's error envelope (`{ code, message }`) in the thrown
+  // message so a logged error is actionable, not just a bare status code.
+  private static formatMessage(status: number, body: unknown): string {
+    const envelope = body as { code?: unknown; message?: unknown } | null
+    const code = typeof envelope?.code === "string" ? envelope.code : null
+    const message = typeof envelope?.message === "string" ? envelope.message : null
+    if (!message) return `Revinel API request failed with status ${status}`
+    return `Revinel API request failed with status ${status}: ${code ? `${code} — ` : ""}${message}`
   }
 }
 
@@ -292,11 +331,13 @@ export function createRevinelClient({
 
   function buildCurrentAdsPath({
     weightGte,
+    tierId,
     excludeIds,
     count,
   }: RevinelPlacementListOptions = {}): string {
     const params = new URLSearchParams()
     if (weightGte !== undefined) params.set("weightGte", String(weightGte))
+    if (tierId) params.set("tierId", tierId)
     if (excludeIds?.length) params.set("excludeIds", excludeIds.join(","))
     if (count !== undefined) params.set("count", String(count))
 
