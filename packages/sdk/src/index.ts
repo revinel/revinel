@@ -44,7 +44,6 @@ export interface RevinelFieldValue {
  *
  * Left empty, `RevinelMeta` falls back to `Record<string, unknown>`.
  */
-// oxlint-disable-next-line no-empty-interface -- augmentation anchor; consumers extend it via `declare module`
 export interface RevinelMetaRegistry {}
 
 export type RevinelMeta = keyof RevinelMetaRegistry extends never
