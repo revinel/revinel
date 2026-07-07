@@ -1,5 +1,21 @@
 # @revinel/react
 
+## 0.4.0
+
+### Minor Changes
+
+- [#255](https://github.com/revinel/platform/pull/255) [`ef327c3`](https://github.com/revinel/platform/commit/ef327c3258b8d956846f9464d0b5f2d0fcc24b98) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Add a `tierId` placement option to `getAd`/`getAds` (and the `useAd`/`useAds` hooks) for serving a fixed slot backed by one specific tier — the deterministic complement to `weightGte`.
+
+  Raise the ads-per-request cap to 50; an over-cap `count` is now clamped by the API instead of rejected with a 422 (which a publisher fail-safe would turn into an empty grid).
+
+  Enrich `RevinelApiError` with the server's error message and add `isClientError` / `isServerError` getters, so a fail-safe can rethrow 4xx caller bugs while still degrading gracefully on 5xx / network failures.
+
+### Patch Changes
+
+- Updated dependencies [[`ef327c3`](https://github.com/revinel/platform/commit/ef327c3258b8d956846f9464d0b5f2d0fcc24b98)]:
+  - @revinel/sdk@0.4.0
+  - @revinel/embeds@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes
