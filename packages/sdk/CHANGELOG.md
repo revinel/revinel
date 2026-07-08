@@ -1,5 +1,19 @@
 # @revinel/sdk
 
+## 0.5.0
+
+### Minor Changes
+
+- [#261](https://github.com/revinel/platform/pull/261) [`68df90b`](https://github.com/revinel/platform/commit/68df90bc402536f810c291fe40979e220b7b3031) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Replace the one-sided `weightGte` placement option with a full range filter `weight: { gte?, gt?, lte?, lt? }` on `getAd`/`getAds` (and the `useAd`/`useAds` hooks). Publishers can now target a weight band — e.g. `{ gte: 2.5 }` for premium, `{ lt: 2.5 }` for regular cards, or `{ gte: 2.5, lt: 5 }` for a range. **Breaking:** `weightGte: n` becomes `weight: { gte: n }`.
+
+  Let `tierId` accept a single id **or an array** of tier ids, so a fixed slot can be backed by a set of tiers (served as a Prisma `in` filter). `tierId: "t1"` is unchanged; `tierId: ["t1", "t2"]` is new.
+
+  On the `/v1` REST surface the range filter is expressed with bracket notation (`?weight[gte]=2.5&weight[lt]=5`) and a tier set is comma-joined (`?tierId=t1,t2`), keeping the SDK, hooks, and raw API consistent.
+
+### Patch Changes
+
+- [`a23de4f`](https://github.com/revinel/platform/commit/a23de4f585e6221b9bd1de491614a5940d506957) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Remove the redundant `fields` array (and `RevinelFieldValue` / `RevinelFieldType` types) from `RevinelAd`. Every creative value is already on `ad.meta` keyed by field slug; the array was duplicate data on the wire with no consumer.
+
 ## 0.4.0
 
 ### Minor Changes
