@@ -150,13 +150,26 @@ export interface RevinelClientOptions {
   timeoutMs?: number | false
 }
 
+/**
+ * Range filter for tier weight (placement targeting). Any subset of the
+ * standard numeric bounds; `{ gte: 2.5 }` = premium, `{ lt: 2.5 }` = regular,
+ * `{ gte: 2.5, lt: 5 }` = a band. Mirrors Prisma's number filter.
+ */
+export interface RevinelWeightFilter {
+  gte?: number
+  gt?: number
+  lte?: number
+  lt?: number
+}
+
 export interface RevinelPlacementOptions {
-  weightGte?: number
+  weight?: RevinelWeightFilter
   /**
-   * Serve only from this tier — a fixed slot backed by one tier (e.g. a
-   * dedicated "hosting" placement). The deterministic complement to `weightGte`.
+   * Serve only from this tier, or any tier in a set — a fixed slot backed by
+   * specific tiers (e.g. a dedicated "hosting" placement). The deterministic
+   * complement to `weight`.
    */
-  tierId?: string
+  tierId?: string | string[]
   excludeIds?: string[]
   request?: RevinelRequestOptions
 }
@@ -180,7 +193,7 @@ interface TrackResponse {
  *
  * ```ts
  * try {
- *   return await client.getAds({ weightGte: 2.5 })
+ *   return await client.getAds({ weight: { gte: 2.5 } })
  * } catch (error) {
  *   if (error instanceof RevinelApiError && error.isClientError) throw error
  *   return [] // 5xx / network — Revinel is down, degrade gracefully
@@ -315,14 +328,20 @@ export function createRevinelClient({
   }
 
   function buildCurrentAdsPath({
-    weightGte,
+    weight,
     tierId,
     excludeIds,
     count,
   }: RevinelPlacementListOptions = {}): string {
     const params = new URLSearchParams()
-    if (weightGte !== undefined) params.set("weightGte", String(weightGte))
-    if (tierId) params.set("tierId", tierId)
+    // Bracket notation the OpenAPI handler deserializes into `{ weight: {...} }`.
+    for (const bound of ["gte", "gt", "lte", "lt"] as const) {
+      const value = weight?.[bound]
+      if (value !== undefined) params.set(`weight[${bound}]`, String(value))
+    }
+    // A set is comma-joined, matching `excludeIds`; a single id is sent as-is.
+    const tierIds = Array.isArray(tierId) ? tierId : tierId ? [tierId] : []
+    if (tierIds.length) params.set("tierId", tierIds.join(","))
     if (excludeIds?.length) params.set("excludeIds", excludeIds.join(","))
     if (count !== undefined) params.set("count", String(count))
 

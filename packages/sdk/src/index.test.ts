@@ -34,7 +34,7 @@ describe("createRevinelClient", () => {
     })
 
     const ad = await client.getAd({
-      weightGte: 2.5,
+      weight: { gte: 2.5 },
       excludeIds: ["ad_old"],
       request: { cache: "no-store" },
     })
@@ -42,7 +42,7 @@ describe("createRevinelClient", () => {
     expect(ad).toEqual(sampleAd)
     expect(calls).toEqual([
       {
-        url: "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weightGte=2.5&excludeIds=ad_old&count=1",
+        url: "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weight%5Bgte%5D=2.5&excludeIds=ad_old&count=1",
         options: { cache: "no-store", headers: {}, signal: expect.any(AbortSignal) },
       },
     ])
@@ -150,11 +150,11 @@ describe("createRevinelClient", () => {
       fetch: fetcher,
     })
 
-    const ads = await client.getAds({ count: 5, weightGte: 2.5 })
+    const ads = await client.getAds({ count: 5, weight: { gte: 2.5, lt: 5 } })
 
     expect(ads).toEqual([sampleAd])
     expect(calls[0]).toBe(
-      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weightGte=2.5&count=5",
+      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weight%5Bgte%5D=2.5&weight%5Blt%5D=5&count=5",
     )
   })
 
@@ -176,6 +176,27 @@ describe("createRevinelClient", () => {
 
     expect(calls[0]).toBe(
       "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?tierId=tier_hosting&count=1",
+    )
+  })
+
+  it("comma-joins a set of tierIds", async () => {
+    const calls: string[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
+    const fetcher: typeof fetch = async url => {
+      calls.push(String(url))
+      return Response.json({ ads: [sampleAd] })
+    }
+
+    const client = createRevinelClient({
+      workspaceId: "ws_openalternative",
+      apiUrl: "https://api.revinel.test",
+      fetch: fetcher,
+    })
+
+    await client.getAd({ tierId: ["tier_hosting", "tier_tools"] })
+
+    expect(calls[0]).toBe(
+      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?tierId=tier_hosting%2Ctier_tools&count=1",
     )
   })
 

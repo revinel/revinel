@@ -21,7 +21,9 @@ const revinel = createRevinelClient({
 })
 
 // Fetch the single ad currently serving for a placement.
-const ad = await revinel.getAd({ weightGte: 2.5 })
+// `weight` is a range filter: { gte, gt, lte, lt } — target a band, e.g.
+// { gte: 2.5 } for premium, { lt: 2.5 } for regular cards.
+const ad = await revinel.getAd({ weight: { gte: 2.5 } })
 
 // Fetch several ads for a grid (rotation-aware; pass excludeIds to dedupe).
 const ads = await revinel.getAds({ count: 5, excludeIds: ad ? [ad.id] : [] })
@@ -67,7 +69,7 @@ declare module "@revinel/sdk" {
 ```
 
 ```ts
-const ad = await revinel.getAd({ weightGte: 2.5 })
+const ad = await revinel.getAd({ weight: { gte: 2.5 } })
 ad?.meta.bannerImage // string | undefined, fully typed
 ```
 

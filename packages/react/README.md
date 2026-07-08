@@ -27,7 +27,7 @@ Wrap your app once, then read ads with the hooks:
 import { RevinelProvider, useAd, useTracking } from "@revinel/react"
 
 const AdSlot = () => {
-  const { data: ad } = useAd({ weightGte: 2.5 }) // premium placement
+  const { data: ad } = useAd({ weight: { gte: 2.5 } }) // premium placement
   const { impressionRef, getClickProps } = useTracking(ad?.id)
 
   if (!ad) return null // no eligible ad, render nothing

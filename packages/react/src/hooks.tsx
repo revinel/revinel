@@ -52,7 +52,7 @@ export interface RevinelTrackingResult {
 
 export function useAd<TMeta = RevinelMeta>({
   enabled = true,
-  weightGte,
+  weight,
   tierId,
   excludeIds,
   request,
@@ -60,12 +60,15 @@ export function useAd<TMeta = RevinelMeta>({
   const client = useRevinelClient()
   const excludeKey = excludeIds?.join(",") ?? ""
   // Same trick as excludeKey: key on content, not identity, so inline objects
-  // don't refetch every render but real request changes do.
+  // (`weight`, `request`) and arrays (`tierId`) don't refetch every render but
+  // real value changes do.
+  const weightKey = JSON.stringify(weight)
+  const tierKey = Array.isArray(tierId) ? tierId.join(",") : (tierId ?? "")
   const requestKey = JSON.stringify(request)
 
   const getData = useCallback(
-    () => client.getAd<TMeta>({ weightGte, tierId, excludeIds, request }),
-    [client, excludeKey, requestKey, weightGte, tierId],
+    () => client.getAd<TMeta>({ weight, tierId, excludeIds, request }),
+    [client, excludeKey, requestKey, weightKey, tierKey],
   )
 
   return useRevinelQuery<RevinelAd<TMeta> | null>(enabled, null, getData)
@@ -73,7 +76,7 @@ export function useAd<TMeta = RevinelMeta>({
 
 export function useAds<TMeta = RevinelMeta>({
   enabled = true,
-  weightGte,
+  weight,
   tierId,
   excludeIds,
   count,
@@ -81,11 +84,13 @@ export function useAds<TMeta = RevinelMeta>({
 }: RevinelAdsOptions = {}): RevinelQueryState<RevinelAd<TMeta>[]> {
   const client = useRevinelClient()
   const excludeKey = excludeIds?.join(",") ?? ""
+  const weightKey = JSON.stringify(weight)
+  const tierKey = Array.isArray(tierId) ? tierId.join(",") : (tierId ?? "")
   const requestKey = JSON.stringify(request)
 
   const getData = useCallback(
-    () => client.getAds<TMeta>({ weightGte, tierId, excludeIds, count, request }),
-    [client, count, excludeKey, requestKey, weightGte, tierId],
+    () => client.getAds<TMeta>({ weight, tierId, excludeIds, count, request }),
+    [client, count, excludeKey, requestKey, weightKey, tierKey],
   )
 
   return useRevinelQuery<RevinelAd<TMeta>[]>(enabled, [], getData)
