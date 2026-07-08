@@ -42,7 +42,7 @@ describe("createRevinelClient", () => {
     expect(ad).toEqual(sampleAd)
     expect(calls).toEqual([
       {
-        url: "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weight%5Bgte%5D=2.5&excludeIds=ad_old&count=1",
+        url: "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/serving?weight%5Bgte%5D=2.5&excludeIds=ad_old&count=1",
         options: { cache: "no-store", headers: {}, signal: expect.any(AbortSignal) },
       },
     ])
@@ -154,7 +154,7 @@ describe("createRevinelClient", () => {
 
     expect(ads).toEqual([sampleAd])
     expect(calls[0]).toBe(
-      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?weight%5Bgte%5D=2.5&weight%5Blt%5D=5&count=5",
+      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/serving?weight%5Bgte%5D=2.5&weight%5Blt%5D=5&count=5",
     )
   })
 
@@ -175,7 +175,7 @@ describe("createRevinelClient", () => {
     await client.getAd({ tierId: "tier_hosting" })
 
     expect(calls[0]).toBe(
-      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?tierId=tier_hosting&count=1",
+      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/serving?tierId=tier_hosting&count=1",
     )
   })
 
@@ -196,7 +196,7 @@ describe("createRevinelClient", () => {
     await client.getAd({ tierId: ["tier_hosting", "tier_tools"] })
 
     expect(calls[0]).toBe(
-      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/current?tierId=tier_hosting%2Ctier_tools&count=1",
+      "https://api.revinel.test/v1/workspaces/ws_openalternative/ads/serving?tierId=tier_hosting%2Ctier_tools&count=1",
     )
   })
 
@@ -234,8 +234,8 @@ describe("createRevinelClient", () => {
     await client.recordClick("ad_123")
 
     expect(calls).toEqual([
-      { url: "https://api.revinel.test/v1/ads/ad_123/impression", method: "POST" },
-      { url: "https://api.revinel.test/v1/ads/ad_123/click", method: "POST" },
+      { url: "https://api.revinel.test/v1/ads/ad_123/impressions", method: "POST" },
+      { url: "https://api.revinel.test/v1/ads/ad_123/clicks", method: "POST" },
     ])
   })
 

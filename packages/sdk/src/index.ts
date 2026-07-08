@@ -357,7 +357,7 @@ export function createRevinelClient({
     return await readJson<T>(response)
   }
 
-  function buildCurrentAdsPath({
+  function buildServingAdsPath({
     weight,
     tierId,
     excludeIds,
@@ -376,7 +376,7 @@ export function createRevinelClient({
     if (count !== undefined) params.set("count", String(count))
 
     const query = params.toString()
-    const path = `/v1/workspaces/${encodeURIComponent(workspaceId)}/ads/current`
+    const path = `/v1/workspaces/${encodeURIComponent(workspaceId)}/ads/serving`
     return query ? `${path}?${query}` : path
   }
 
@@ -391,7 +391,7 @@ export function createRevinelClient({
       withRevalidateDefault(mergeRequestOptions(request, placementRequest)),
     )
 
-    const response = await fetcher(`${baseUrl}${buildCurrentAdsPath(options)}`, effective)
+    const response = await fetcher(`${baseUrl}${buildServingAdsPath(options)}`, effective)
 
     return (await readJson<{ ads: RevinelAd<TMeta>[] }>(response)).ads
   }
@@ -405,7 +405,7 @@ export function createRevinelClient({
 
   function recordEvent(kind: "impression" | "click") {
     return (adId: string, options: RevinelTrackOptions = {}): Promise<TrackResponse> =>
-      fetchJson<TrackResponse>(`/v1/ads/${encodeURIComponent(adId)}/${kind}`, {
+      fetchJson<TrackResponse>(`/v1/ads/${encodeURIComponent(adId)}/${kind}s`, {
         method: "POST",
         keepalive: true,
         ...options.request,
@@ -433,7 +433,7 @@ export function createRevinelClient({
     options: RevinelRequestOptions = {},
   ): Promise<RevinelCheckoutSession> {
     return fetchJson<RevinelCheckoutSession>(
-      "/v1/checkout",
+      `/v1/workspaces/${encodeURIComponent(workspaceId)}/checkout-sessions`,
       // Merge caller options so their `headers` extend (not replace) the JSON
       // content-type; explicit `method`/`body` still win over any caller value.
       mergeRequestOptions(
