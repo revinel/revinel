@@ -182,7 +182,7 @@ export interface RevinelTrackOptions {
   request?: RevinelRequestOptions
 }
 
-interface TrackResponse {
+export interface TrackResponse {
   success: boolean
 }
 
@@ -295,13 +295,43 @@ async function readJson<T>(response: Response): Promise<T> {
   return (await response.json()) as T
 }
 
+/**
+ * The client returned by `createRevinelClient`. Declared explicitly rather than
+ * inferred so `getAd` / `getAds` keep their `TMeta = RevinelMeta` default in the
+ * emitted `.d.ts`. An inferred return type resolves that conditional against the
+ * SDK's own (empty) `RevinelMetaRegistry` at build time and bakes in
+ * `Record<string, unknown>`, which would defeat a publisher's `ad.meta`
+ * augmentation and force a per-call generic.
+ */
+export interface RevinelClient {
+  /** Fetch the single served ad for a placement, or null when none is eligible. */
+  getAd: <TMeta = RevinelMeta>(
+    options?: RevinelPlacementOptions,
+  ) => Promise<RevinelAd<TMeta> | null>
+  /** Fetch up to `count` distinct served ads for a placement. */
+  getAds: <TMeta = RevinelMeta>(
+    options?: RevinelPlacementListOptions,
+  ) => Promise<RevinelAd<TMeta>[]>
+  /** Record an impression for an ad. */
+  recordImpression: (adId: string, options?: RevinelTrackOptions) => Promise<TrackResponse>
+  /** Record a click for an ad. */
+  recordClick: (adId: string, options?: RevinelTrackOptions) => Promise<TrackResponse>
+  /** List the workspace's advertising tiers. */
+  getTiers: (options?: RevinelRequestOptions) => Promise<RevinelTier[]>
+  /** Create a Stripe Checkout session for a tier price. */
+  createCheckout: (
+    options: RevinelCheckoutOptions,
+    requestOptions?: RevinelRequestOptions,
+  ) => Promise<RevinelCheckoutSession>
+}
+
 export function createRevinelClient({
   workspaceId,
   apiUrl = DEFAULT_API_URL,
   fetch: customFetch,
   request,
   timeoutMs = DEFAULT_TIMEOUT_MS,
-}: RevinelClientOptions) {
+}: RevinelClientOptions): RevinelClient {
   const baseUrl = trimTrailingSlash(apiUrl)
   const fetcher = getFetch(customFetch)
 
@@ -426,5 +456,3 @@ export function createRevinelClient({
     createCheckout,
   }
 }
-
-export type RevinelClient = ReturnType<typeof createRevinelClient>

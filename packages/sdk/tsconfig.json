@@ -1,5 +1,11 @@
 {
   "extends": "@revinel/tsconfig/base.json",
+  "compilerOptions": {
+    // Require explicit types on every export so the public API surface (and its
+    // emitted .d.ts) is authored, never inferred — e.g. the client's
+    // `TMeta = RevinelMeta` default can't silently collapse to Record<string, unknown>.
+    "isolatedDeclarations": true
+  },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
 }
