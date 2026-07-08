@@ -1,5 +1,13 @@
 # @revinel/react
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`75b1c42`](https://github.com/revinel/platform/commit/75b1c426c66b845dc4f46bec7356aab51984be3c)]:
+  - @revinel/sdk@0.5.1
+  - @revinel/embeds@0.5.1
+
 ## 0.5.0
 
 ### Minor Changes

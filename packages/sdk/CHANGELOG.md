@@ -1,5 +1,15 @@
 # @revinel/sdk
 
+## 0.5.1
+
+### Patch Changes
+
+- [#265](https://github.com/revinel/platform/pull/265) [`75b1c42`](https://github.com/revinel/platform/commit/75b1c426c66b845dc4f46bec7356aab51984be3c) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Type `createRevinelClient` with an explicit `RevinelClient` interface so `getAd`/`getAds` keep their `TMeta = RevinelMeta` default in the emitted `.d.ts`.
+
+  Previously the client's return type was inferred (`ReturnType<typeof createRevinelClient>`), and TypeScript resolves a generic's conditional-type default when it synthesizes an inferred return type — against the SDK's own empty `RevinelMetaRegistry` at build time — so the shipped types collapsed to `<TMeta = Record<string, unknown>>`. A publisher's `ad.meta` augmentation therefore didn't flow through `client.getAd()` / `getAds()` (or `useRevinelClient()`) without a per-call generic. Declaring the return type explicitly emits the default verbatim, so `ad.meta` is typed from the augmented registry with no annotation.
+
+  Also exports `TrackResponse` and enables `isolatedDeclarations` for the package, which enforces explicit types on every export so this class of inference-driven type drift can't recur.
+
 ## 0.5.0
 
 ### Minor Changes
