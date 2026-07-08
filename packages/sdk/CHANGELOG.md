@@ -1,5 +1,11 @@
 # @revinel/sdk
 
+## 0.6.0
+
+### Minor Changes
+
+- [#271](https://github.com/revinel/platform/pull/271) [`b9e8b23`](https://github.com/revinel/platform/commit/b9e8b23523b6137c9c244a5252e5eaa8dfee47f4) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Normalize the public REST API paths the SDK targets. Ad serving is now `GET /v1/workspaces/{id}/ads/serving` (was `.../ads/current`), tracking uses plural sub-collections `POST /v1/ads/{adId}/impressions` and `.../clicks` (were `/impression` and `/click`), and checkout is workspace-scoped at `POST /v1/workspaces/{id}/checkout-sessions` (was `POST /v1/checkout`). The SDK's public method signatures are unchanged; only the endpoints called under the hood moved, so the client must be paired with an API on the matching version.
+
 ## 0.5.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@revinel/browser",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": false,
   "description": "Browser runtime helpers for embedding the Revinel advertiser tier selector.",
   "keywords": [
