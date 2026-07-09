@@ -421,7 +421,7 @@ export function createRevinelClient({
     const effective = withTimeoutDefault(withNoStoreDefault(mergeRequestOptions(request, options)))
 
     const response = await fetcher(
-      `${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/tiers`,
+      `${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/tiers/serving`,
       effective,
     )
 
