@@ -1,5 +1,15 @@
 # @revinel/react
 
+## 0.7.0
+
+### Patch Changes
+
+- [#281](https://github.com/revinel/platform/pull/281) [`184d608`](https://github.com/revinel/platform/commit/184d60815c00ee9f0d7391ac99450272bc28e6b2) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - Tier features are now structured objects instead of prefixed strings. `RevinelTier.features` is `RevinelTierFeature[]` (`{ label, type }`, where `type` is `positive | neutral | negative`) rather than `string[]`, and the `parseTierFeature` helper is removed. Read `feature.label` and `feature.type` directly.
+
+- Updated dependencies [[`a63d4e9`](https://github.com/revinel/platform/commit/a63d4e93ff6a6a13487d7527dc88bdbe8768a649), [`184d608`](https://github.com/revinel/platform/commit/184d60815c00ee9f0d7391ac99450272bc28e6b2)]:
+  - @revinel/sdk@0.7.0
+  - @revinel/embeds@0.7.0
+
 ## 0.6.0
 
 ### Patch Changes
