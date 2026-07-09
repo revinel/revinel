@@ -66,16 +66,15 @@ export interface RevinelTier {
   description: string
   weight: number
   order: number
-  /** Raw feature strings; parse with `parseTierFeature`. */
-  features: string[]
+  features: RevinelTierFeature[]
   prices: RevinelTierPrice[]
 }
 
 export type RevinelTierFeatureType = "positive" | "neutral" | "negative"
 
 export interface RevinelTierFeature {
-  type: RevinelTierFeatureType
   label: string
+  type: RevinelTierFeatureType
 }
 
 export interface RevinelCheckoutOptions {
@@ -89,27 +88,6 @@ export interface RevinelCheckoutOptions {
 export interface RevinelCheckoutSession {
   url: string
   sessionId: string
-}
-
-// Feature strings carry a leading keyboard-typeable prefix that encodes intent.
-const TIER_FEATURE_PREFIXES: Record<RevinelTierFeatureType, string> = {
-  positive: "+ ",
-  neutral: "~ ",
-  negative: "- ",
-}
-
-/**
- * Splits a tier feature string into its intent (`positive`/`neutral`/`negative`)
- * and display label. Unprefixed strings are treated as neutral.
- */
-export function parseTierFeature(raw: string): RevinelTierFeature {
-  for (const type of ["positive", "neutral", "negative"] as const) {
-    const prefix = TIER_FEATURE_PREFIXES[type]
-    if (raw.startsWith(prefix)) {
-      return { type, label: raw.slice(prefix.length) }
-    }
-  }
-  return { type: "neutral", label: raw }
 }
 
 /** Extra `fetch` options merged into every request. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { createRevinelClient, parseTierFeature, RevinelApiError } from "./index"
+import { createRevinelClient, RevinelApiError } from "./index"
 
 const sampleAd = {
   id: "ad_123",
@@ -17,18 +17,6 @@ const sampleAd = {
     },
   ],
 }
-
-describe("parseTierFeature", () => {
-  it("parses current keyboard prefixes", () => {
-    expect(parseTierFeature("+ Sidebar slot")).toEqual({ type: "positive", label: "Sidebar slot" })
-    expect(parseTierFeature("~ Beta feature")).toEqual({ type: "neutral", label: "Beta feature" })
-    expect(parseTierFeature("- No analytics")).toEqual({ type: "negative", label: "No analytics" })
-  })
-
-  it("treats unprefixed strings as neutral", () => {
-    expect(parseTierFeature("Cancel anytime")).toEqual({ type: "neutral", label: "Cancel anytime" })
-  })
-})
 
 describe("createRevinelClient", () => {
   it("fetches one ad with placement query parameters", async () => {

@@ -27,8 +27,6 @@ export {
   type RevinelTierSelectorProps,
 } from "./tier-selector"
 
-export { parseTierFeature } from "@revinel/sdk"
-
 export type {
   RevinelEmbedCheckoutEvent,
   RevinelEmbedErrorEvent,
