@@ -91,11 +91,11 @@ export interface RevinelCheckoutSession {
   sessionId: string
 }
 
-// Feature strings are stored with a leading glyph that encodes intent.
+// Feature strings carry a leading keyboard-typeable prefix that encodes intent.
 const TIER_FEATURE_PREFIXES: Record<RevinelTierFeatureType, string> = {
-  positive: "✓ ",
-  neutral: "• ",
-  negative: "✗ ",
+  positive: "+ ",
+  neutral: "~ ",
+  negative: "- ",
 }
 
 /**
