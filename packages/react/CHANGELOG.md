@@ -1,5 +1,17 @@
 # @revinel/react
 
+## 0.9.0
+
+### Minor Changes
+
+- [#299](https://github.com/revinel/platform/pull/299) [`9c00ea3`](https://github.com/revinel/platform/commit/9c00ea3525fe3ac2e629db04f9fc446e1a4019c4) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - `useTracking` accepts a `ref` option that composes an external ref (object or callback) into `impressionRef`, so consumers who also need the ad node (forwardRef wrappers, Base UI/Radix `render`/`asChild`) keep a single attach point instead of hand-merging refs. Cleanup is React 19-safe: a callback ref's returned cleanup is honored, and on React 18 the `null` detach is synthesized.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @revinel/embeds@0.9.0
+  - @revinel/sdk@0.9.0
+
 ## 0.8.0
 
 ### Minor Changes
