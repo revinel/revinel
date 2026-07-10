@@ -65,6 +65,25 @@ hook is typed with no per-call generic. If `impressionRef` can't sit on your ad 
 (e.g. a Slot/`asChild` wrapper that swallows refs), put it on a wrapping element or an
 absolutely-positioned sentinel inside the ad.
 
+### Composing refs
+
+Need the ad node yourself too (a ref forwarded from a parent, or Base UI/Radix
+`render`/`asChild`)? Pass your external ref as `ref` and `impressionRef` composes it in, so
+you still attach a single ref. In React 19 `ref` is just a prop, so no `forwardRef`:
+
+```tsx
+function AdLink({ ref, ...props }: ComponentProps<"a">) {
+  const { data: ad } = useAd()
+  const { impressionRef, getClickProps } = useTracking(ad?.id, { ref })
+  if (!ad) return null
+  return <a ref={impressionRef} href={ad.websiteUrl} {...getClickProps()} {...props} />
+}
+```
+
+Object and callback refs both work, and cleanup is React 19-safe (a callback ref's returned
+cleanup is honored; on React 18 the `null` detach is synthesized). A stable ref is churn-free;
+a new inline callback ref each render reattaches (standard React).
+
 ## Tier selector (acquire advertisers)
 
 `workspaceId` (and optional `appUrl`) are inherited from `RevinelProvider`, so inside one

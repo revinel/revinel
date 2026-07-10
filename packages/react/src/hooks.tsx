@@ -12,6 +12,7 @@ import {
 import {
   type HTMLAttributes,
   type MouseEvent,
+  type Ref,
   type RefCallback,
   useCallback,
   useEffect,
@@ -44,6 +45,27 @@ export interface RevinelTrackingOptions {
   // that changes per page view (e.g. the current pathname) to re-arm tracking
   // for a layout-persistent ad that never remounts on client-side navigation.
   resetKey?: string | number
+  /** External ref composed into `impressionRef` (object or callback ref). */
+  ref?: Ref<HTMLElement>
+}
+
+/**
+ * Assign a node to an object or callback ref and return a cleanup that detaches
+ * it. For callback refs we honor a React-19-style returned cleanup and, when
+ * absent, synthesize the React-18 `ref(null)` detach ourselves so both versions
+ * behave identically.
+ */
+export function applyRef<T>(ref: Ref<T> | undefined, node: T): (() => void) | undefined {
+  if (typeof ref === "function") {
+    const cleanup = ref(node)
+    return typeof cleanup === "function" ? cleanup : () => ref(null)
+  }
+  if (ref) {
+    ref.current = node
+    return () => {
+      ref.current = null
+    }
+  }
 }
 
 export interface RevinelTrackingResult {
@@ -109,6 +131,7 @@ export function useTracking(
     threshold = 0.5,
     viewabilityDurationMs = 500,
     resetKey,
+    ref,
   }: RevinelTrackingOptions = {},
 ): RevinelTrackingResult {
   const client = useRevinelClient()
@@ -119,9 +142,32 @@ export function useTracking(
   // collide), so a resetKey change re-arms tracking for the same ad id.
   const trackKey = adId == null ? null : `${resetKey ?? ""}␟${adId}`
 
-  const impressionRef = useCallback<RefCallback<HTMLElement>>(node => {
-    setElement(node)
-  }, [])
+  const cleanupRef = useRef<(() => void) | null>(null)
+
+  const impressionRef = useCallback<RefCallback<HTMLElement>>(
+    node => {
+      // Run any pending external cleanup + clear state (React 18 null call, or
+      // re-attach). Idempotent: null it out so a later React 19 cleanup no-ops.
+      cleanupRef.current?.()
+      cleanupRef.current = null
+
+      if (node == null) {
+        setElement(null)
+        return
+      }
+
+      setElement(node)
+      const cleanupExternal = applyRef(ref, node)
+      function cleanup() {
+        cleanupRef.current = null
+        cleanupExternal?.()
+        setElement(null)
+      }
+      cleanupRef.current = cleanup
+      return cleanup
+    },
+    [ref],
+  )
 
   useEffect(() => {
     if (disabled || !adId || !element || typeof IntersectionObserver === "undefined") return
