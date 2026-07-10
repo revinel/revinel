@@ -50,6 +50,11 @@ export const Ads = () => (
 shape), records a viewable impression (via `IntersectionObserver`), and wires click
 tracking through `getClickProps()` (which also tracks middle-click / open-in-new-tab).
 
+For a layout-persistent ad that never remounts on client-side navigation (a banner above the
+router outlet), impressions only fire once per ad id. Pass `resetKey` set to something that
+changes per page view (the current pathname) to restore one impression per page view:
+`useTracking(ad, { resetKey: pathname })`.
+
 > **Rendering multiple slots? Use one `useAds({ count: n })`, not `n × useAd()`.** Each
 > `useAd()` sends the same request, so the shared edge cache returns the *same* ad every
 > time, so you'd render duplicates and double-count impressions. `useAds({ count })` returns

@@ -40,6 +40,10 @@ export interface RevinelTrackingOptions {
   disabled?: boolean
   threshold?: number
   viewabilityDurationMs?: number
+  // Impressions fire once per ad id for the component's lifetime. Pass a value
+  // that changes per page view (e.g. the current pathname) to re-arm tracking
+  // for a layout-persistent ad that never remounts on client-side navigation.
+  resetKey?: string | number
 }
 
 export interface RevinelTrackingResult {
@@ -100,12 +104,20 @@ export function useTracking(
   // Only the id is read, so accept the id directly or anything carrying one (the
   // full ad, or a reduced render shape of your own).
   ad: { id: string } | string | null | undefined,
-  { disabled = false, threshold = 0.5, viewabilityDurationMs = 500 }: RevinelTrackingOptions = {},
+  {
+    disabled = false,
+    threshold = 0.5,
+    viewabilityDurationMs = 500,
+    resetKey,
+  }: RevinelTrackingOptions = {},
 ): RevinelTrackingResult {
   const client = useRevinelClient()
   const [element, setElement] = useState<HTMLElement | null>(null)
   const trackedAdId = useRef<string | null>(null)
   const adId = (typeof ad === "string" ? ad : ad?.id) ?? null
+  // Guard on a composite of resetKey + id (unit-separator so the two can never
+  // collide), so a resetKey change re-arms tracking for the same ad id.
+  const trackKey = adId == null ? null : `${resetKey ?? ""}␟${adId}`
 
   const impressionRef = useCallback<RefCallback<HTMLElement>>(node => {
     setElement(node)
@@ -113,7 +125,7 @@ export function useTracking(
 
   useEffect(() => {
     if (disabled || !adId || !element || typeof IntersectionObserver === "undefined") return
-    if (trackedAdId.current === adId) return
+    if (trackedAdId.current === trackKey) return
 
     let timer: ReturnType<typeof setTimeout> | null = null
 
@@ -121,8 +133,8 @@ export function useTracking(
       ([entry]) => {
         if (entry?.isIntersecting) {
           timer = setTimeout(() => {
-            if (trackedAdId.current === adId) return
-            trackedAdId.current = adId
+            if (trackedAdId.current === trackKey) return
+            trackedAdId.current = trackKey
             client.recordImpression(adId).catch(() => {})
           }, viewabilityDurationMs)
           return
@@ -142,7 +154,7 @@ export function useTracking(
       observer.disconnect()
       if (timer) clearTimeout(timer)
     }
-  }, [adId, client, disabled, element, threshold, viewabilityDurationMs])
+  }, [adId, trackKey, client, disabled, element, threshold, viewabilityDurationMs])
 
   const trackClick = useCallback(() => {
     if (disabled || !adId) return
