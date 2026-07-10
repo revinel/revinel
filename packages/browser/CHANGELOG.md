@@ -1,5 +1,12 @@
 # @revinel/browser
 
+## 0.8.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @revinel/embeds@0.8.0
+
 ## 0.7.0
 
 ### Patch Changes

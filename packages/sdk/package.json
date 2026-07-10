@@ -1,6 +1,6 @@
 {
   "name": "@revinel/sdk",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": false,
   "description": "Universal headless Revinel SDK for fetching and tracking publisher ads.",
   "keywords": [

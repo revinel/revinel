@@ -1,5 +1,17 @@
 # @revinel/react
 
+## 0.8.0
+
+### Minor Changes
+
+- [#291](https://github.com/revinel/platform/pull/291) [`add3fb1`](https://github.com/revinel/platform/commit/add3fb1b19731a2aa1587c974ee5fa19a73365c2) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - `useTracking` accepts a `resetKey` option. Impressions fire once per ad id for the component's lifetime; pass a `resetKey` that changes per page view (e.g. the current pathname) to re-arm tracking for a layout-persistent ad that never remounts on client-side navigation, restoring one impression per page view.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @revinel/embeds@0.8.0
+  - @revinel/sdk@0.8.0
+
 ## 0.7.0
 
 ### Patch Changes
