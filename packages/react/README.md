@@ -91,11 +91,11 @@ Outside a provider, pass `workspaceId` (and `appUrl` for self-hosted) directly:
 Build your own pricing UI instead with `useTiers()` + `useCheckout()`:
 
 ```tsx
-import { parseTierFeature, useCheckout, useTiers } from "@revinel/react"
+import { useCheckout, useTiers } from "@revinel/react"
 
 const { data: tiers } = useTiers()
 const { redirectToCheckout, isPending } = useCheckout()
-// tiers[].features → parseTierFeature(line) → { type, label }
+// each tier carries structured features: tier.features is { label, type }[]
 // redirectToCheckout({ tierPriceId }) creates the session and navigates to Stripe
 ```
 
@@ -103,7 +103,7 @@ const { redirectToCheckout, isPending } = useCheckout()
 
 - **Provider:** `RevinelProvider`, `useRevinelClient`, `useRevinelConfig`
 - **Ads:** `useAd`, `useAds`, `useTracking`
-- **Tiers/checkout:** `useTiers`, `useCheckout`, `parseTierFeature`
+- **Tiers/checkout:** `useTiers`, `useCheckout`
 - **Widgets:** `TierSelector`, `TierSelectorDialog`
 
 Every hook's option and return types are exported (`RevinelAdOptions`, `RevinelQueryState`, …)

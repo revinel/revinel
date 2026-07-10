@@ -20,8 +20,8 @@ export interface RevinelTierSelectorProps {
   /** Origin of the Revinel app serving `/embed`. Falls back to the provider, then the hosted app. */
   appUrl?: string
   theme?: RevinelEmbedTheme
-  /** Height (px) shown until the embed reports its real content height. */
-  height?: number
+  /** Height shown until the embed reports its real content height (px number, or any CSS length string). */
+  height?: number | string
   className?: string
   title?: string
   /** Fired once the tier selector has loaded and rendered. */
