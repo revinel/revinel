@@ -1,5 +1,11 @@
 # @revinel/sdk
 
+## 0.10.0
+
+### Minor Changes
+
+- [#362](https://github.com/revinel/platform/pull/362) [`67d9ffe`](https://github.com/revinel/platform/commit/67d9ffeaeb379e904b1fca6e5aa88bb9b5791066) Thanks [@piotrkulpinski](https://github.com/piotrkulpinski)! - `createCheckout` (and `useCheckout().createCheckout` / `redirectToCheckout` in `@revinel/react`) accepts a `metadata` option: your own string key-value pairs, written to both the Stripe Checkout session and the subscription on your connected account. Because the subscription carries them, every renewal invoice does too, so an analytics attribution id or referral code survives past the first payment. Up to 47 keys, keys up to 40 characters, values up to 500 characters, no square brackets in keys. `workspaceId`, `tierId` and `tierPriceId` are reserved, and a request that uses one or breaks a limit answers 422.
+
 ## 0.9.0
 
 ## 0.8.0
