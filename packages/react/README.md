@@ -115,7 +115,8 @@ import { useCheckout, useTiers } from "@revinel/react"
 const { data: tiers } = useTiers()
 const { redirectToCheckout, isPending } = useCheckout()
 // each tier carries structured features: tier.features is { label, type }[]
-// redirectToCheckout({ tierPriceId }) creates the session and navigates to Stripe
+// redirectToCheckout({ tierPriceId }) creates the session and navigates to Stripe.
+// Pass metadata: { attribution_id } to tag the session and subscription with your own keys.
 ```
 
 ## Exports

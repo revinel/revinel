@@ -83,6 +83,14 @@ export interface RevinelCheckoutOptions {
   email?: string
   /** Where Stripe returns the visitor on cancel. Success always stays on Revinel. */
   cancelUrl?: string
+  /**
+   * Your own key-value pairs (an analytics attribution id, a referral code),
+   * written to both the Stripe Checkout session and the subscription, so every
+   * renewal invoice carries them too. Up to 47 keys, keys up to 40 characters,
+   * values up to 500 characters, no square brackets in keys. `workspaceId`,
+   * `tierId` and `tierPriceId` are reserved. Revinel does not store them.
+   */
+  metadata?: Record<string, string>
 }
 
 export interface RevinelCheckoutSession {
@@ -407,7 +415,7 @@ export function createRevinelClient({
   }
 
   function createCheckout(
-    { tierPriceId, email, cancelUrl }: RevinelCheckoutOptions,
+    { tierPriceId, email, cancelUrl, metadata }: RevinelCheckoutOptions,
     options: RevinelRequestOptions = {},
   ): Promise<RevinelCheckoutSession> {
     return fetchJson<RevinelCheckoutSession>(
@@ -419,7 +427,7 @@ export function createRevinelClient({
         {
           ...options,
           method: "POST",
-          body: JSON.stringify({ tierPriceId, email, cancelUrl }),
+          body: JSON.stringify({ tierPriceId, email, cancelUrl, metadata }),
         },
       ),
     )

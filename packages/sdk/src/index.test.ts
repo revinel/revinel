@@ -239,6 +239,37 @@ describe("createRevinelClient", () => {
     ])
   })
 
+  it("posts checkout options, including publisher metadata", async () => {
+    const calls: { url: string; options?: RequestInit }[] = []
+    // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
+    const fetcher: typeof fetch = async (url, options) => {
+      calls.push({ url: String(url), options })
+      return Response.json({ url: "https://checkout.stripe.test/session", sessionId: "cs_123" })
+    }
+
+    const client = createRevinelClient({
+      workspaceId: "ws_openalternative",
+      apiUrl: "https://api.revinel.test",
+      fetch: fetcher,
+    })
+
+    await expect(
+      client.createCheckout({
+        tierPriceId: "tier_price_monthly",
+        metadata: { attribution_id: "attr_123" },
+      }),
+    ).resolves.toEqual({ url: "https://checkout.stripe.test/session", sessionId: "cs_123" })
+
+    expect(calls[0]?.url).toBe(
+      "https://api.revinel.test/v1/workspaces/ws_openalternative/checkout-sessions",
+    )
+    expect(calls[0]?.options?.method).toBe("POST")
+    expect(JSON.parse(String(calls[0]?.options?.body))).toEqual({
+      tierPriceId: "tier_price_monthly",
+      metadata: { attribution_id: "attr_123" },
+    })
+  })
+
   it("throws typed API errors for failed requests", async () => {
     // oxlint-disable-next-line func-style -- fetch stub typed via `typeof fetch`
     const fetcher: typeof fetch = async () => {

@@ -95,6 +95,29 @@ const ad = await revinel.getAd({ request: { cache: "no-store" } })
 
 Any explicit `cache` or `next.revalidate` replaces the default entirely.
 
+## Checkout
+
+Start a Stripe Checkout session for a tier price and send the visitor to its `url`:
+
+```ts
+const { url } = await revinel.createCheckout({
+  tierPriceId: tier.prices[0].id,
+  // Optional: pre-fill the email, and where Stripe returns the visitor on cancel.
+  email: "sponsor@example.com",
+  cancelUrl: "https://your-site.com/advertise",
+  // Optional: your own key-value pairs, for example an analytics attribution id.
+  metadata: { attribution_id: "attr_123" },
+})
+```
+
+`metadata` is written to both the Stripe Checkout session and the subscription on your
+connected Stripe account. The subscription keeps it, so every renewal invoice carries it
+too. Values must be strings. You can send up to 47 keys (Stripe allows 50 and Revinel uses
+3), each key up to 40 characters and each value up to 500 characters. Keys cannot contain
+square brackets. The keys `workspaceId`, `tierId` and `tierPriceId` are reserved for
+Revinel. A request that uses one of them or breaks a limit answers 422 and creates no
+session. Revinel does not store your metadata.
+
 ## Timeouts
 
 Requests abort after **10 seconds** by default (via `AbortSignal.timeout`), rejecting
